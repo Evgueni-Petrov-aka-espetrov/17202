@@ -37,7 +37,7 @@ char intToChar(int i) {
 	return -1;
 }
 //функция проверяет введённое число на соответствие с.с. b1
-bool isValid(string &number, int b1, int dot) {
+bool isValid(const string &number, int b1, int dot) {
 	if (number.empty()) {
 		return false;
 	}
@@ -50,7 +50,7 @@ bool isValid(string &number, int b1, int dot) {
 			return false;
 		}
 	}
-	if (dot == 0 || dot == number.length() - 1) {
+	if (dot == 0 || dot == number.length() - 1) { // espetrov: объедините эти два return?
 		return false;
 	}
 	return true;
@@ -64,7 +64,7 @@ long long strToDec_cell(string &str, int b1, int dot) {
 			result = result*b1 + charToInt(str[i]);
 		}
 	}
-	else {
+	else { // espetrov: объединить с веткой dot > 0
 		for (int i = 0; i < str.length(); i++)
 		{
 			result = result*b1 + charToInt(str[i]);
@@ -82,7 +82,7 @@ double strToDec_float(string &str, int b1, int dot) {
 	{
 		result = result / b1 + charToInt(str[i]);
 	}
-	result = result / b1;
+	result = result / b1; // espetrov: объединить с return
 	return result;
 }
 //функция принимает целую часть числа в десятичном виде
@@ -92,7 +92,7 @@ string decToB2_cell(long long cell_part, int b2) {
 		return "0";
 	}
 	string result;
-	while (cell_part%b2 != 0 || cell_part / b2 != 0) {
+	while (cell_part%b2 != 0 || cell_part / b2 != 0) { // espetrov: упростите условие?
 		//если остаток от деления числа на b2 = 0 и 
 		//деление нацело на b2 = 0, то завершаем цикл
 		result += intToChar(cell_part%b2);
@@ -127,7 +127,7 @@ string toResult(long long cell_part, double float_part, int b2) {
 		reverse(result.begin(), result.end());
 	}
 	else {
-		result = decToB2_cell(cell_part, b2);
+		result = decToB2_cell(cell_part, b2); // espetrov: не зависит от float_part == 0 -- вынесите перед if?
 		reverse(result.begin(), result.end());
 		result += '.' + decToB2_float(float_part, b2);
 	}
