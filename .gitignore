@@ -12,5 +12,6 @@ out.txt
 *.exe.stackdump
 bin/*
 obj/*
+obj/Debug/*
 *.exe
 *.o
