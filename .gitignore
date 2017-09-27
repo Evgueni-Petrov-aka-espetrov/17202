@@ -10,5 +10,7 @@ Sazonov/01.c
 in.txt
 out.txt
 *.exe.stackdump
-bin
-obj
+bin/*
+obj/*
+*.exe
+*.o
