@@ -36,7 +36,7 @@ int main()
     int *data_arr = malloc(arr_len*sizeof(int));
     for (i=0;i<arr_len;i++)
         fscanf(in, "%d", &data_arr[i]);
-    data_arr--; //чтобы нумеровать элеметы с единицы
+    data_arr--;
     build_heap(arr_len, data_arr);
     i = arr_len;
     while(i)

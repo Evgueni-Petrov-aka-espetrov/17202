@@ -9,6 +9,7 @@ out.txt
 *.exe.stackdump
 bin/*
 obj/*
+obj/Debug/*
 *.exe
 *.o
 .DS_Store
