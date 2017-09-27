@@ -1,8 +1,0 @@
-# depslib dependency file v1.0
-1505747369 source:c:\netbeansprojects\prog0\main.c
-	<stdio.h>
-
-1505873939 source:c:\cprojects\prog0\main.c
-	<stdio.h>
-	<stdlib.h>
-

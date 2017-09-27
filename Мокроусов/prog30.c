@@ -30,23 +30,34 @@ void swap(int *data, int x, int y)
 int main()
 {
     FILE *in = fopen("in.txt", "r");
+fprintf(stderr, "%d\n", __LINE__);	
     FILE *out = fopen("out.txt", "w");
+fprintf(stderr, "%d\n", __LINE__);	
     int arr_len, i;
+fprintf(stderr, "%d\n", __LINE__);	
     fscanf(in, "%d\n", &arr_len);
+fprintf(stderr, "%d\n", __LINE__);	
     int *data_arr = malloc(arr_len*sizeof(int));
+fprintf(stderr, "%d\n", __LINE__);	
     for (i=0;i<arr_len;i++)
         fscanf(in, "%d", &data_arr[i]);
-    data_arr--; //чтобы нумеровать элеметы с единицы
+fprintf(stderr, "%d\n", __LINE__);	
+    data_arr--; //пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+fprintf(stderr, "%d\n", __LINE__);	
     build_heap(arr_len, data_arr);
+fprintf(stderr, "%d\n", __LINE__);	
     i = arr_len;
+fprintf(stderr, "%d\n", __LINE__);	
     while(i)
     {
         swap(data_arr, 1, i--);
         sift_down(i, data_arr, 1);
     }
+fprintf(stderr, "%d\n", __LINE__);	
     while (arr_len)
         fprintf(out, "%d ", data_arr[arr_len--]);
-    free(data_arr+1);
+fprintf(stderr, "%d\n", __LINE__);	
+    free(data_arr);
     fclose(in);
     fclose(out);
     return 0;
