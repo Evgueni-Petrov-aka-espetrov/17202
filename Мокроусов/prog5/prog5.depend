@@ -1,0 +1,5 @@
+# depslib dependency file v1.0
+1506399708 source:c:\netbeansprojects\prog5\main.c
+	<stdio.h>
+	<stdlib.h>
+

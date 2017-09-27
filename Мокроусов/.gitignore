@@ -2,15 +2,9 @@
 # Данный GITIGNORE-файл был автоматически создан Microsoft(R) Visual Studio.
 ################################################################################
 
-/.vs
-Sazonov/01.c
-Sazonov/01.c
-Киреев/lab0
 .dep.inc
 in.txt
 out.txt
 *.exe.stackdump
-bin/*
-obj/*
-*.exe
-*.o
+bin
+obj
