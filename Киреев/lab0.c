@@ -4,7 +4,7 @@
 #include <string>
 using namespace std;
 
-
+// test test
 //перевод из символа в целое число
 int charToInt(char c) {
 	const char digit[] =
