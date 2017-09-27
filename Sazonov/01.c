@@ -18,11 +18,17 @@ int input_check(FILE *input_file, char *input_array){
       endnum = enumerator;
       break;
     }
+<<<<<<< HEAD
     ++enumerator;
   }
   fclose(input_file);
   input_file = fopen("in.txt", "r");
   fscanf(input_file, "%d %d\n", &enumerator, &enumerator);
+=======
+    *(input_array+enumerator) = tmp;
+    ++enumerator;
+  }
+>>>>>>> e6e6616fc39406a9e63b9efc2cee5241a0bf54a2
   if(dotnum == endnum - 1 || dotnum == 0 || endnum == 0)
     return 0;
   return 1;
