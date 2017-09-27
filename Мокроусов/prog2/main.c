@@ -56,7 +56,7 @@ bool gen_next_permut(char *permut, int permut_len)
   return true;
 };
 
-void print_permut(FILE *out, const char *permut, int permut_len)
+void print_permut(FILE *out, char *permut, int permut_len)
 {
   while (permut_len--)
       fputc(*permut++, out);
