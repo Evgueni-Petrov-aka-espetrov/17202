@@ -13,3 +13,6 @@ obj/Debug/*
 *.exe
 *.o
 .DS_Store
+/Sazonov/*
+!/Sazonov/*.c
+!/Sazonov/*.cpp
