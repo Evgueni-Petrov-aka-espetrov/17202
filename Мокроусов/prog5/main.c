@@ -219,7 +219,9 @@ int main()
 {
     //MessageBox(0, "12345", "a", MB_OK);
     FILE *in = fopen("in.txt","rb");
+    if (in==NULL) return -1;
     FILE *out = fopen("out.txt","wb");
+    if (out==NULL) return -1;
     char cmd;
     volatile char temp;
     cmd = (char) fgetc(in);
