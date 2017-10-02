@@ -1,0 +1,11 @@
+# depslib dependency file v1.0
+1506959275 source:c:\netbeansprojects\prog9\main.c
+	<stdio.h>
+	<stdlib.h>
+	<limits.h>
+
+1506952201 c:\netbeansprojects\prog9\stack.h
+
+1506951255 source:c:\netbeansprojects\prog9\stack.c
+	"stack.h"
+
