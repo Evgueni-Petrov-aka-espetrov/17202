@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+
+#define UNDEFINED -1
+#define INFINITY -1
+
 typedef struct
 {
     int was_used;
@@ -8,6 +12,8 @@ typedef struct
     int prev_node;
     int has_only_way;
 } TVertex;
+
+
 void error(FILE *in, FILE *out, char *msg, void *malloc1, void *malloc2)
 {
     if (malloc1) free(malloc1);
@@ -18,11 +24,11 @@ void error(FILE *in, FILE *out, char *msg, void *malloc1, void *malloc2)
     exit(0);
 }
 
-void read_connectivity_map(FILE *in, FILE *out, long long *connectivity_map, int n, int m)
+void read_connectivity_map(FILE *in, FILE *out, int *connectivity_map, int n, int m)
 {
     int i;
     for (i=0;i<n*n;i++)
-        connectivity_map[i] = -1;
+        connectivity_map[i] = INFINITY;
     for (i=0;i<m;i++)
     {
         int v1, v2;
@@ -41,17 +47,17 @@ void read_connectivity_map(FILE *in, FILE *out, long long *connectivity_map, int
 
 int get_least_node(TVertex *nodes, int node_count)
 {
-    int i, min_dist_index = -1;
+    int i, min_dist_index = UNDEFINED;
     long long min_dist = 1;
     int was_set_min_dist = 0;
     for (i=0;i<node_count;i++)
-        if ((nodes[i].was_used==0) && (nodes[i].distance!=-1) && ((!was_set_min_dist) || (nodes[i].distance<=min_dist)))
+        if ((nodes[i].was_used==0) && (nodes[i].distance!=UNDEFINED) && ((!was_set_min_dist) || (nodes[i].distance<=min_dist)))
         {
             min_dist_index = i;
             min_dist = nodes[i].distance;
             was_set_min_dist = 1;
         };
-    return was_set_min_dist ? min_dist_index : -1;
+    return was_set_min_dist ? min_dist_index : UNDEFINED;
 }
 
 void print_distances(FILE *out, TVertex *nodes, int node_count)
@@ -60,7 +66,7 @@ void print_distances(FILE *out, TVertex *nodes, int node_count)
     for (i=0;i<node_count;i++)
     {
         long long temp = nodes[i].distance;
-        if (temp==-1)
+        if (temp==INFINITY)
             fprintf(out, "oo ");
         else if (temp>INT_MAX)
             fprintf(out, "INT_MAX+ ");
@@ -74,7 +80,7 @@ void find_shortest_path(FILE *out, TVertex *nodes, int finish_node, int start_no
 {
     int buf[5001];
     int i, pos = 0;
-    if (nodes[finish_node].distance==-1)
+    if (nodes[finish_node].distance==INFINITY)
     {
         fprintf(out, "no path");
         return;
@@ -118,32 +124,33 @@ int main()
         error(in, out, "bad number of lines", NULL, NULL);
     if (m<0 || m>n*(n-1)/2)
         error(in, out, "bad number of edges", NULL, NULL);
-    long long *connectivity_map = malloc(sizeof(long long)*n*n);
+    int *connectivity_map = malloc(sizeof(int)*n*n);
     read_connectivity_map(in, out, connectivity_map, n, m);
     if (n==0)
         error(in, out, "", NULL, NULL);
     TVertex *nodes = (TVertex*) malloc(sizeof(TVertex)*n);
     for (i=0;i<n;i++)
     {
-        nodes[i].distance = nodes[i].prev_node = -1;
+        nodes[i].distance = INFINITY;
+        nodes[i].prev_node = UNDEFINED;
         nodes[i].was_used = 0;
     }
     nodes[s].distance = 0;
     while (1)
     {
         int cur_least_node = get_least_node(nodes, n);
-        if (cur_least_node==-1) break;
+        if (cur_least_node==UNDEFINED) break;
         for (i=0;i<n;i++)
-             if (connectivity_map[cur_least_node*n+i]!=-1)
+             if (connectivity_map[cur_least_node*n+i]!=INFINITY)
             {
-                if ((nodes[i].distance==-1) || (nodes[cur_least_node].distance+connectivity_map[cur_least_node*n+i]<nodes[i].distance))
+                if ((nodes[i].distance==INFINITY) || (nodes[cur_least_node].distance+((unsigned long long)connectivity_map[cur_least_node*n+i])<nodes[i].distance))
                 {
-                    nodes[i].distance = nodes[cur_least_node].distance+connectivity_map[cur_least_node*n+i];
+                    nodes[i].distance = nodes[cur_least_node].distance+((unsigned long long)connectivity_map[cur_least_node*n+i]);
                     nodes[i].prev_node = cur_least_node;
                     nodes[i].has_only_way = 1;
                     continue;
                 }
-                if (nodes[cur_least_node].distance+connectivity_map[cur_least_node*n+i]==nodes[i].distance)
+                if (nodes[cur_least_node].distance+((unsigned long long)connectivity_map[cur_least_node*n+i])==nodes[i].distance)
                 {
                     nodes[i].has_only_way = 0;
                     continue;
