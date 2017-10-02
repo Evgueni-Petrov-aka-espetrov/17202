@@ -3,17 +3,18 @@
 #include <string.h>
 
 typedef enum {none, processing, complete} TVertexState;
-typedef struct {
-    unsigned short queque_start;
-    unsigned short queque_end;
-    unsigned short connections_to[1000];
-    TVertexState state;
-} TVertex;
 
 typedef struct {
     unsigned short pos;
     unsigned short item[1000];
 } TStack;
+
+typedef struct {
+    TStack vertex_connections;
+    TVertexState state;
+} TVertex;
+
+
 
 void stack_push(TStack *stack, int val)
 {
@@ -23,16 +24,6 @@ int stack_pop(TStack *stack)
 {
     if (!stack->pos) return -1;
     return stack->item[--stack->pos];
-}
-
-void vertex_queque_push(TVertex *vert, int val)
-{
-    vert->connections_to[vert->queque_end++] = val;
-}
-int vertex_queque_pop(TVertex *vert)
-{
-    if (vert->queque_start==vert->queque_end) return -1;
-    return vert->connections_to[vert->queque_start++];
 }
 
 int find_vertex_with_state(TVertex *vert_arr, int vert_count, TVertexState state)
@@ -52,34 +43,40 @@ void error(FILE *in, FILE *out, void *verts, char *msg)
 }
 void find_topological_order(FILE *in, FILE *out, TVertex *vert_arr, int vert_count, int vert_id, TStack *stack)
 {
-    if (vert_arr[vert_id].state==processing) error(in, out, vert_arr, "impossible to sort");
-    vert_arr[vert_id].state=processing;
-    int i;
-    for (i=vert_arr[vert_id].queque_end;i<;i++)
-        find_topological_order(in, out, vert_arr, vert_count, vert_arr[vert_id].connections_to[i], stack);
+    switch (vert_arr[vert_id].state)
+    {
+        case none: vert_arr[vert_id].state=processing; break;
+        case processing: error(in, out, vert_arr, "impossible to sort"); break;
+        case complete: return;
+    }
+
+    int temp;
+    while ((temp=stack_pop(&vert_arr[vert_id].vertex_connections))!=-1)
+        find_topological_order(in, out, vert_arr, vert_count, temp, stack);
     stack_push(stack, vert_id);
     vert_arr[vert_id].state = complete;
 }
 int main()
 {
     unsigned int n, m, i;
-    FILE *in = fopen("input.txt", "r");
-    FILE *out = fopen("output.txt", "w");
-    fscanf(in, "%d\n", &n);
+    FILE *in = fopen("in.txt", "r");
+    FILE *out = fopen("out.txt", "w");
+    if (fscanf(in, "%d\n", &n)==EOF) error(in, out, NULL, "bad number of lines");
     TVertex *verts = malloc(sizeof(TVertex)*n);
     if (verts==NULL) return -1;
     memset(verts, 0, sizeof(TVertex)*n);
-    fscanf(in, "%d\n", &m);
+    if (fscanf(in, "%d\n", &m)==EOF)
+        error(in, out, verts, "bad number of lines");
     if (n<0 || n>1000) error(in, out, verts, "bad number of vertices");
     if (m<0 || m>(n*(n-1)/2)) error(in, out, verts, "bad number of edges");
     for (i=0;i<m;i++)
     {
-        if (feof(in)) error(in, out, verts, "bad number of lines");
         int ai,bi;
-        fscanf(in, "%d %d", &ai, &bi);
+        if (fscanf(in, "%d %d", &ai, &bi)==EOF)
+            error(in, out, verts, "bad number of lines");
         if (ai<0 || ai>n) error(in, out, verts, "bad vertex");
         if (bi<0 || bi>n) error(in, out, verts, "bad vertex");
-        vertex_queque_push(&verts[ai-1], bi-1);
+        stack_push(&(verts[ai-1].vertex_connections), bi-1);
     }
     TStack stack;
     stack.pos = 0;
@@ -91,7 +88,7 @@ int main()
     };
     int item;
     while ((item = stack_pop(&stack))!=-1)
-        printf("%d ", item);
+        fprintf(out, "%d ", item+1);
     fclose(in);
     fclose(out);
     return 0;
