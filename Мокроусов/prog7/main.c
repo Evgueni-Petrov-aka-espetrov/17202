@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,7 +25,7 @@ void error(FILE *in, FILE *out, TVertex *verts, int vert_count, char *msg)
         for (i=0;i<vert_count;i++)
             if (verts[i].vertex_connections.items!=NULL) free(verts[i].vertex_connections.items);
         free(verts);
-    };
+    }
     fprintf(out, msg);
     fclose(in);
     fclose(out);
@@ -39,10 +40,9 @@ void stack_push(FILE *in, FILE *out, TVertex *vert_arr, int vert_count, TStack *
         if (temp==NULL)
             error(in, out, vert_arr, vert_count, "");
         memcpy(temp, stack->items, stack->pos*sizeof(unsigned short));
-        if (stack->items!=NULL)
-            free(stack->items);
+        free(stack->items);
         stack->items = temp;
-    };
+    }
 
     stack->items[stack->pos++] = val;
 }
@@ -99,12 +99,13 @@ int main()
     }
     TStack stack;
     stack.pos = 0;
+	stack.items = NULL;
     while (1)
     {
         int new_start_vert = find_vertex_with_state(verts, n, none);
         if (new_start_vert==-1) break;
         find_topological_order(in, out, verts, n, new_start_vert, &stack);
-    };
+    }
     int item;
     while ((item = stack_pop(&stack))!=-1)
         fprintf(out, "%d ", item+1);
