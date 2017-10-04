@@ -1,4 +1,4 @@
-USE WITH -m 2600
+#pragma message("\n\nUSE WITH -m 2600\n\n")
 
 #include <iostream>
 #include <fstream>
