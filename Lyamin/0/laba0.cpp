@@ -4,49 +4,30 @@
 #include <fstream>
 
 using namespace std;
-
+enum { MAX_STR = 13 };
 struct Massive{
-	char *adr;
+	char adr[MAX_STR];
 	int PointLoc;
 	int num;
 };
+static const char alphavite[] = "0123456789ABCDEFabcdef";
 //from char to imt
-int CharToInt(char *num) {
-	char alphavite[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-		'A', 'B', 'C', 'D', 'E', 'F',
-		'a', 'b', 'c', 'd', 'e', 'f'};
-	for (int i = 0; i < 22; ++i) {
-		if (*num == alphavite[i]) {
-			if (i < 16) {
-				return i;
-			}
-			else {
-				return i - 6;
-			}
-		}
+int CharToInt(char num) {
+	const char* pos = strchr(alphavite, num);
+	if (pos == NULL) {
+		return -1;
 	}
-	return -1;
-}
-//check original number b1
-int b1check(Massive a, const int b1) {
-	for (int i = 0; i < a.num; ++i, ++a.adr) {
-		if ((CharToInt(a.adr) >= b1) && (*a.adr != '.')) {
-			return 0;
-		}
-	}
+	return pos - alphavite < 16 ? i : i - 6;
 }
 //from int to char
 char IntToChar(int num) {
-	char alphavite[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-		'A', 'B', 'C', 'D', 'E', 'F',
-		'a', 'b', 'c', 'd', 'e', 'f' };
 	return alphavite[num];
 }
 //count of dots in original number
 int CountPoint(Massive a) {
 	int result = 0;
-	for (int i = 0; i < a.num; ++i, ++a.adr) {
-		if (*a.adr == '.') {
+	for (int i = 0; i < a.num; ++i) {
+		if (a.adr[i] == '.') {
 			++result;
 		}
 	}
@@ -54,38 +35,32 @@ int CountPoint(Massive a) {
 }
 //return dot's position
 int SearchPoint(Massive a) {
-	for (int i = 0; i < a.num; ++i, ++a.adr) {
-		if (*a.adr == '.') {
+	for (int i = 0; i < a.num; ++i) {
+		if (a.adr[i] == '.') {
 			return i;
 		}
 	}
 	return a.num;
 }
 //return number of "good" elements in original number
-int Number(char *chislo) {
-	int count = 0;
-	while (count < 13) {
-		if ((CharToInt(chislo)>=0&& CharToInt(chislo)<=15)||*chislo=='.') {
-			++count;
-			++chislo;
-		}
-		else {
-			break;
+int Number(Massive a, int base) {
+	for (int count = 0; count < MAX_STR; ++count) {
+		if ((CharToInt(a.adr[count]) < 0 || CharToInt(a.adr[count]) >= base) && a.adr[count] != '.') {
+			return count;
 		}
 	}
-	return count;
+	return MAX_STR;
 }
 //from original number to dec floor
-long long DecCell(Massive a, const int b1) {
+long long DecCell(Massive a, int b1) {
 	long long result = 0;
 	for (int i = 0; i < a.PointLoc; ++i, ++a.adr) {
 		result = result*b1 + CharToInt(a.adr);
-		//cout << i << ' ' << result << endl;
 	}
 	return result;
 }
 //from original number to dec cell
-double DecFloor(Massive a, const int b1) {
+double DecFloor(Massive a, int b1) {
 	double result = 0;
 	if (CountPoint(a) == 0) {
 		result = -1;
@@ -99,7 +74,7 @@ double DecFloor(Massive a, const int b1) {
 	return result;
 }
 //printing dec cell to b2
-void Cell2b2(long long CellDec, const int b2) {
+void Cell2b2(long long CellDec, int b2) {
 	char Cellb2[52] = {};
 	if (CellDec == 0){
 		cout << '0';
@@ -118,15 +93,14 @@ void Cell2b2(long long CellDec, const int b2) {
 	return;
 }
 //printing dec floor to b2
-void Floor2b2(double FloorDec, const int b2) {
-	char Floorb2[12] = {};
+void Floor2b2(double FloorDec, int b2) {
 	int count = 0;
 	if (FloorDec == 0) {
 		cout << '0';
 		return;
 	}
 	else {
-		while ((count < 12) && (FloorDec != 0)) {
+		while ((count < MAX_STR - 1) && (FloorDec != 0)) {
 			int a = FloorDec * b2;
 			FloorDec = FloorDec*b2 - a;
 			cout << IntToChar(a);
@@ -135,8 +109,8 @@ void Floor2b2(double FloorDec, const int b2) {
 	return;
 }
 //checking bad input
-int Checking(Massive a, const int b1, const int b2) {
-	//c.c. doesn't match/
+int Checking(Massive a, int b1, int b2) {
+	//c.c. doesn't match//
 	if ((b1 < 2) || (b1 > 16) || (b2 < 2) || (b2 > 16)) {
 		return 0;
 	}
@@ -151,23 +125,18 @@ int Checking(Massive a, const int b1, const int b2) {
 		return 0;
 	}
 	
-	//checking original on b1//
-	if (b1check(a, b1)==0) {
-		return 0;
-	}
-
 	return 1;
 }
 //PRINTING
-void Printing(Massive a, const int b1, const int b2) {
+void Printing(Massive a, int b1, int b2) {
 	if (Checking(a, b1, b2) == 0) {
 		cout << "bad input";
 		return;
 	}
 	else {
 		if (b1 == b2) {
-			for (int i = 0; i < a.num; ++i, ++a.adr) {
-				cout << *a.adr;
+			for (int i = 0; i < a.num; ++i) {
+				cout << a.adr[i];
 			}
 			return;
 		}
@@ -185,20 +154,17 @@ void Printing(Massive a, const int b1, const int b2) {
 int main() {
 	ifstream g("in.txt");
 	int b1, b2;
-	char chislo[13] = {};
 	g >> b1 >> b2;
 	Massive original;
 	original.num = 0;
-	while (original.num < 13) {
-		g >> chislo[original.num];
+	while (original.num < MAX_STR) {
+		g >> original.adr[original.num];
 		++original.num;
 	}
 	g.close();
 
-	original.adr = chislo;
-	original.num = Number(chislo);
+	original.num = Number(original, b1);
 	original.PointLoc = SearchPoint(original);
 	Printing(original, b1, b2);
-	//system("pause");
 	return 0;
 }
