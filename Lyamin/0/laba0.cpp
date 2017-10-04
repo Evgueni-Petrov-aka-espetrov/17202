@@ -17,7 +17,7 @@ int CharToInt(char num) {
 	if (pos == NULL) {
 		return -1;
 	}
-	return pos - alphavite < 16 ? i : i - 6;
+	return pos - alphavite < 16 ? pos - alphavite : pos - alphavite - 6;
 }
 //from int to char
 char IntToChar(int num) {
@@ -54,8 +54,8 @@ int Number(Massive a, int base) {
 //from original number to dec floor
 long long DecCell(Massive a, int b1) {
 	long long result = 0;
-	for (int i = 0; i < a.PointLoc; ++i, ++a.adr) {
-		result = result*b1 + CharToInt(a.adr);
+	for (int i = 0; i < a.PointLoc; ++i) {
+		result = result*b1 + CharToInt(a.adr[i]);
 	}
 	return result;
 }
@@ -66,9 +66,8 @@ double DecFloor(Massive a, int b1) {
 		result = -1;
 	}
 	else {
-		a.adr += a.num - 1;
-		for (int i = a.num - 1; i > a.PointLoc; --i, --a.adr) {
-			result = (result + CharToInt(a.adr)) / b1;
+		for (int i = a.num - 1; i > a.PointLoc; --i) {
+			result = (result + CharToInt(a.adr[i])) / b1;
 		}
 	}
 	return result;
