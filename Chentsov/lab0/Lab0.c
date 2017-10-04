@@ -7,14 +7,6 @@ void lower(int length, char *x){
         if((x[i] >= 'A') && (x[i] <= 'F'))
             x[i] += 'a' - 'A';
 }
-void test_about_point(int *point, char *x, int *length,int *no_point){
-    if(*point < 0){
-        x[*length] = '.';
-        *point = *length;
-        *length ++;
-        *no_point = 0;
-        }
-}
 int hex2int(int hex){
     if(hex <= '9')
         return hex - '0';
@@ -25,7 +17,7 @@ int int2hex(int in){
         return in + '0';
     return in + 'a' - 10;
 }
-int check_the_number(int length, char *x, int b1){
+int check_the_number(int length, char const* const x, int b1, int b2, int point){
     int i, bad_input = 0;
     for(i = 0;i < length;i ++)
         if(x[i] == '.')
@@ -38,7 +30,11 @@ int check_the_number(int length, char *x, int b1){
             else
                 if(((x[i] < '0') || (x[i] > '9')) && ((x[i] < int2hex(10)) || (x[i] > int2hex(15))))
                     bad_input += 2;
-        return bad_input;
+    if((b1 < 2) || (b1 > 16) || (b2 < 2) || (b2 > 16) || (bad_input > 1) || (x[length - 1] == '.') || (point == 0)){
+        printf("bad input");
+        return 0;
+    }
+    return 1;
 }
 long long calculation_of_integer_part(int point, char *x, int b1){
     int i;
@@ -95,11 +91,9 @@ int main() {
     lower(length,x);
     int point = strchr(x,'.') - x;
     int no_point = 1;
-    test_about_point(&point, x, &length, &no_point);
-    int bad_input = check_the_number(length, x, b1);
-    if((b1 < 2) || (b1 > 16) || (b2 < 2) || (b2 > 16) || (bad_input > 1) || ((no_point) && (x[length - 1] == '.')) || (point == 0))
-        printf("bad input");
-    else{
+    if(point < 0)
+        point = length;
+    if(check_the_number(length, x, b1, b2, point)){
         long long integer_part = calculation_of_integer_part(point, x, b1);
         double fractional_part = calculation_of_fractional_part(point, length, x, b1);
         int length_of_integer_part = calculation_of_length_of_integer_part(b2, integer_part);
