@@ -17,7 +17,7 @@ int int2hex(int in){
         return in + '0';
     return in + 'a' - 10;
 }
-int check_the_number(int length, char const* const x, int b1, int b2, int point){
+int check_the_number(int length, const char *x, int b1, int b2, int point){
     int i, bad_input = 0;
     for(i = 0;i < length;i ++)
         if(x[i] == '.')
@@ -36,14 +36,14 @@ int check_the_number(int length, char const* const x, int b1, int b2, int point)
     }
     return 1;
 }
-long long calculation_of_integer_part(int point, char *x, int b1){
+long long calculation_of_integer_part(int point, const char *x, int b1){
     int i;
     long long result = 0;
     for(i = 0;i < point;i ++)
         result += hex2int(x[i]) * (long long)powl(b1,(point - i - 1));
     return result;
 }
-double calculation_of_fractional_part(int point, int length, char *x, int b1){
+double calculation_of_fractional_part(int point, int length, const char *x, int b1){
     int i;
     double result = 0;
     for(i = point + 1;i < length;i ++)
