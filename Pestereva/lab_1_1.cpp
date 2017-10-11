@@ -20,10 +20,11 @@ unsigned int hash_shift(unsigned char buf_first, unsigned char buf_last, unsigne
 int read(char buf[], int templ_len, int count, int *buf_pos, char *buf_first) {
 	*buf_first = buf[*buf_pos];
 	while (count--) {
-		buf[*buf_pos] = getchar();
-		if (buf[*buf_pos] == EOF) {
+		k = getchar();
+		if (k == EOF) {
 			return 0;
 		}
+		buf[*buf_pos] = (char)k;
 		*buf_pos = (*buf_pos + 1) % templ_len;
 	}
 	return 1;
