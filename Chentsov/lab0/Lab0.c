@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#define MAX_STR 13
 void lower(int length, char *x){
     int i;
     for(i = 0;i < length;i ++)
@@ -71,7 +72,7 @@ int making_of_fractional_part(double fractional_part, char *line, int length_of_
         line[length_of_integer_part] = '.';
         i = 1;
         int remainder;
-        while((fractional_part != 0) && (i < 13)){
+        while((fractional_part != 0) && (i < MAX_STR)){
             fractional_part *= b2;
             remainder = (int)fractional_part % b2;
             line[length_of_integer_part + i] = int2hex(remainder);
@@ -97,7 +98,7 @@ int main() {
         long long integer_part = calculation_of_integer_part(point, x, b1);
         double fractional_part = calculation_of_fractional_part(point, length, x, b1);
         int length_of_integer_part = calculation_of_length_of_integer_part(b2, integer_part);
-        char line[length_of_integer_part + 13];
+        char line[length_of_integer_part + MAX_STR];
         making_of_integer_part(length_of_integer_part, b2, line, integer_part);
         i = making_of_fractional_part(fractional_part, line, length_of_integer_part, b2);
         length = strlen(line);
