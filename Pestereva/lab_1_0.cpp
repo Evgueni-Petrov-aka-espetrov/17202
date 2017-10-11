@@ -7,7 +7,7 @@ int max(int a, int b) {
 
 void fill_stops(int stops[], int stops_len, char templ[], int templ_len) {
 	for (int i = 0; i < 256; stops[i++] = 0);
-	for (int i = 0; i < templ_len - 1; stops[templ[i++]] = i + 1);
+	for (int i = 0; i < templ_len - 1; i++, stops[(unsigned char)templ[i]] = i+1);
 }
 
 void fill_sufs(int sufs[], char templ[], int templ_len) {
@@ -33,10 +33,11 @@ int shift_pos(char buf[], int templ_len, int count) {
 		buf[i - count] = buf[i];
 	}
 	for (int i = templ_len - count; i < templ_len; i++) {
-		buf[i] = getchar();
-		if (buf[i] == EOF) {
+		int k = getchar();
+		if (k == EOF) {
 			return 0;
 		}
+		buf[i] = k;
 	}
 	return 1;
 }
