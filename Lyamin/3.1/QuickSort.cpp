@@ -61,11 +61,11 @@ int main() {
 	for (int i = 0; i < N; ++i) {
 		cout << original[i];
 		if (i == (N - 1)) {
-			return 0;
+			break;
 		}
 		cout << ' ';
 	}
-
+	
 	free(original);
 	return 0;
 }
