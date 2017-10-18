@@ -45,6 +45,6 @@ int *inputArray(FILE *input_file, int *n) {
 
 int main() {
     int n;
-    outputArray(fopen("out.txt", "w"), inputArray(fopen("input.txt", "r"), &n), n);
+    outputArray(fopen("out.txt", "w"), inputArray(fopen("in.txt", "r"), &n), n);
     return 0;
 }
