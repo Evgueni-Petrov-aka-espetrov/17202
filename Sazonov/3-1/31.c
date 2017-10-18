@@ -2,8 +2,7 @@
 #include <stdlib.h>
 
 void outputArray(FILE *output_file, int *array, int n) {
-    int *arrayend = array + n;
-    for (; array < arrayend; ++array) fprintf(output_file, "%d ", *array);
+    for (int *arrayend = array + n; array < arrayend; ++array) fprintf(output_file, "%d ", *array);
     fclose(output_file);
     free(array);
 }
