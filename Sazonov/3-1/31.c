@@ -33,8 +33,7 @@ void quickSort(int *array, int low_index, int high_index) {
     }
 }
 
-int *inputArray(int *n) {
-    FILE *input_file = fopen("in.txt", "r");
+int *inputArray(FILE *input_file, int *n) {
     fscanf(input_file, "%d", n);
     int *array = (int *) malloc(*n * sizeof(int));
     int *arrayend = array + *n;
@@ -46,7 +45,6 @@ int *inputArray(int *n) {
 
 int main() {
     int n;
-    outputArray(fopen("out.txt", "w"), inputArray(&n), n);
-    
+    outputArray(fopen("out.txt", "w"), inputArray(fopen("input.txt", "r"), &n), n);
     return 0;
 }
