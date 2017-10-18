@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "main.h"
+#include "rw_bits.h"
 #include <windows.h>
 
 void bubble_sort(tree_node *arr, int len)
@@ -90,23 +91,25 @@ void go_tree(tree_node *haffman_tree, int node_id, char *temp_buffer, unsigned c
         }
 }
 
-void write_map(FILE *out, tree_node *haffman_tree, int startMap, int lastNode)
+void write_map(FILE *out, tree_node *haffman_tree, int lastNode, BitFile *bf)
 {
-    fwrite(&startMap, sizeof(int), 1, out);
-    fwrite(&lastNode, sizeof(int), 1, out);
     int i;
-    for (i=startMap;i<=lastNode;i++)
+    for (i=0;i<2;i++)
     {
-        if (i<256)
+        if (haffman_tree[lastNode].childs[i]<256)
         {
-            fwrite(&haffman_tree[i].node_char, 1, 1, out);
+            file_write_bit(bf, 0);
+            file_write_byte(bf, haffman_tree[haffman_tree[lastNode].childs[i]].node_char);
+            //printf("0: %c\n", haffman_tree[haffman_tree[lastNode].childs[i]].node_char);
         }
         else
         {
-            fwrite(&(haffman_tree[i].childs[0]), sizeof(short), 1, out);
-            fwrite(&(haffman_tree[i].childs[1]), sizeof(short), 1, out);
+            //printf("1\n");
+            file_write_bit(bf, 1);
+            write_map(out, haffman_tree, haffman_tree[lastNode].childs[i], bf);
         }
     }
+
 }
 
 void encode_data(FILE *in, FILE *out, bitseq *bit_sequences, long count_chars)
@@ -128,6 +131,7 @@ void encode_data(FILE *in, FILE *out, bitseq *bit_sequences, long count_chars)
             {
                 count_bits = 0;
                 fwrite(&temp, 1, 1, out);
+                temp = 0;
             }
         }
     };
@@ -153,34 +157,43 @@ void compress(FILE *in, FILE *out)
     char temp_sequence[256];
     go_tree(haffman_tree, lastNode, temp_sequence, 0, bit_sequences);
     fseek(in, old_ptr, SEEK_SET);
-    write_map(out, haffman_tree, start_map, lastNode);
+    BitFile bf;
+    init_file_read_writer(&bf, out);
+    file_write_bit(&bf, 1);
+    write_map(out, haffman_tree, lastNode, &bf);
+    file_flush_write(&bf);
+    fflush(out);
     fputc(0xDE, out);
     fputc(0xAD, out);
     fputc(0xBE, out);
     fputc(0xEF, out);
     encode_data(in, out, bit_sequences, count_chars);
 }
-int read_haffman_tree(FILE *in, tree_node *haffman_tree)
+int read_haffman_tree(FILE *in, tree_node *haffman_tree, int free_pos, BitFile *bf)
 {
-    int startMap, lastNode;
-    fread(&startMap, sizeof(int), 1, in);
-    fread(&lastNode, sizeof(int), 1, in);
-    int i;
-    for (i=startMap;i<=lastNode;i++)
+    int temp = file_read_bit(bf);
+    if (temp)
     {
-        if (i<256)
+        //printf("1\n");
+        int next_free_pos = free_pos+1;
+        int i;
+        for (i=0;i<2;i++)
         {
-            fread(&haffman_tree[i].node_char, 1, 1, in);
-            haffman_tree[i].childs[0] = -1;
-            haffman_tree[i].childs[1] = -1;
+            haffman_tree[free_pos].childs[i] = next_free_pos;
+            next_free_pos = read_haffman_tree(in, haffman_tree, next_free_pos, bf);
         }
-        else
-        {
-            fread(&(haffman_tree[i].childs[0]), sizeof(short), 1, in);
-            fread(&(haffman_tree[i].childs[1]), sizeof(short), 1, in);
-        }
+        return next_free_pos;
     }
-    return lastNode;
+    else
+    {
+        int temp = file_read_byte(bf);
+        //printf("0: %c\n", temp);
+        haffman_tree[free_pos].node_char = temp;
+        haffman_tree[free_pos].childs[0] = -1;
+        haffman_tree[free_pos].childs[1] = -1;
+        return ++free_pos;
+    }
+
 }
 void decompress_chars(FILE *in, FILE *out, tree_node *haffman_tree, int last_node)
 {
@@ -204,19 +217,27 @@ void decompress_chars(FILE *in, FILE *out, tree_node *haffman_tree, int last_nod
             }
         }
     };
+    //printf("%d", count_chars);
 }
 void decompress(FILE *in, FILE *out)
 {
     tree_node haffman_tree[1024];
-    int last_node = read_haffman_tree(in, haffman_tree);
+    BitFile bf;
+    init_file_read_writer(&bf, in);
+    read_haffman_tree(in, haffman_tree, 256, &bf);
     int i;
     volatile unsigned char temp;
+    for (i=256;i<=300;i++)
+    {
+        //printf("i=%d: %c %d %d\n", i, haffman_tree[i].node_char, haffman_tree[i].childs[0], haffman_tree[i].childs[1]);
+    }
     for (i=0;i<4;i++)
          temp = (unsigned char) fgetc(in);
-    decompress_chars(in, out, haffman_tree, last_node);
+    decompress_chars(in, out, haffman_tree, 256);
 };
 int main()
 {
+    //MessageBox(0, "12345", "a", MB_OK);
     FILE *in = fopen("in.txt","rb");
     if (in==NULL) return -1;
     FILE *out = fopen("out.txt","wb");
