@@ -36,7 +36,7 @@ void quicksort(int *array, int low, int high)
     {
         int p = partition(array, low, high);
         quicksort(array, low, p);
-        quicksort(array, p+1, high); //???????????????????????
+        quicksort(array, p+1, high); 
     }
 }
 
