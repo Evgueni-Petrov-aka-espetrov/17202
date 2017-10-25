@@ -3,7 +3,7 @@
 // -------------
 // Constructors:
 
-Ratio::Ratio() : num(1), den(1) {  }
+Ratio::Ratio() : num(0), den(1) {  }
 Ratio::Ratio(long long numerator, long long denominator) : num(numerator), den(denominator) { Refresh(); }
 
 // -------------
@@ -23,40 +23,10 @@ void Ratio::Refresh() {
 	}
 }
 
-long long Ratio::GCD(long long a, long long b) {
-	a = abs(a);
-	b = abs(b);
-
-	while (b) {
-		a %= b;
-
-		a ^= b;
-		b ^= a;
-		a ^= b;
-	}
-	return a;
-}
-
-int Ratio::CharToInt(char digit) {
-	digit = toupper(digit);
-
-	if ((digit >= '0') && (digit <= '9')) { return digit - '0'; }
-	if ((digit >= 'A') && (digit <= 'F')) { return (digit - 'A') + 10; }
-
-	throw invalid_argument(R"("digit" parameter is invalid)");
-}
-
-char Ratio::IntToChar(int digit, bool upperRes) {
-	if ((digit < 0) || (digit >= 16)) { throw invalid_argument(R"("digit" parameter is invalid)"); }
-
-	if (digit < 10) { return '0' + digit; }
-	else { return ((upperRes) ? 'A' : 'a') + (digit - 10); }
-}
-
 // -------------
 // Public Methods:
 
-string Ratio::ToString(int radix) {
+string Ratio::ToString(int radix, bool upperRes, size_t precision) const {
 	if ((radix < 2) || (radix > 16)) { throw invalid_argument("Bad radix"); }
 	if (this->den == 0) { throw invalid_argument("Denumenator is zero"); }
 
@@ -73,17 +43,18 @@ string Ratio::ToString(int radix) {
 	r.num %= r.den;
 
 	while (integer_part) {
-		int_str = IntToChar(integer_part % radix) + int_str;
+		int_str = IntToChar(integer_part % radix, upperRes) + int_str;
 		integer_part /= radix;
 	}
-	result += (int_str.length() ? int_str : "0"s);
+	//result += (int_str.length() ? int_str : "0"s);
+	result += (int_str.length() ? int_str : string("0"));
 
-	if (r.num) {
+	if (r.num && (precision != 0)) {
 		result += '.';
 
-		for (int i = 0; i < 12; ++i) {
+		for (int i = 0; i < precision; ++i) {
 			r.num *= radix;
-			result += IntToChar(r.num / r.den);
+			result += IntToChar(static_cast<int>(r.num / r.den), upperRes);
 			r.num %= r.den;
 
 			if (!r.num) { break; }
@@ -99,13 +70,14 @@ bool Ratio::StrIsNumber(const string &str, int radix) {
 	string char_set;
 	regex r;
 
-	char_set = "0-"s + IntToChar(min(radix - 1, 9));
+	char_set = string("0-") + IntToChar(min(radix - 1, 9));
 	if (radix > 10) {
-		char_set += "a-"s + IntToChar(radix - 1, false);
-		char_set += "A-"s + IntToChar(radix - 1, true);
+		char_set += string("a-") + IntToChar(radix - 1, false);
+		char_set += string("A-") + IntToChar(radix - 1, true);
 	}
 
-	r = R"(-?(?:[)"s + char_set + R"(]+)(?:\.[)"s + char_set + R"(]+)?)"s;
+	//r = R"(-?(?:[)"s + char_set + R"(]+)(?:\.[)"s + char_set + R"(]+)?)"s;
+	r = string(R"(-?(?:[)") + string(char_set) + string(R"(]+)(?:\.[)") + string(char_set) + string(R"(]+)?)");
 
 	return regex_match(str, r);
 }
@@ -131,6 +103,8 @@ Ratio Ratio::StrToRatio(const string &str, int radix) {
 	}
 
 	if (it != end) {
+		while (*(end - 1) == '0') { --end; }
+
 		for (++it; it != end; ++it) {
 			result.num *= radix;
 			result.den *= radix;

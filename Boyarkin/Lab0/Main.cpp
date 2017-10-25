@@ -9,7 +9,7 @@ int main() {
 	ifstream in("in.txt");
 	ofstream out("out.txt");
 
-	if (in.bad()) {
+	if (in.fail()) {
 		out << "Couldn't open file.";
 		return 1;
 	}
@@ -23,7 +23,8 @@ int main() {
 
 	try {
 		x = Ratio::StrToRatio(str, b1);
-		out << x.ToString(b2);
+
+		out << x.ToString(b2) << '\n';
 	}
 	catch (...) { out << "bad input"; } // Something bad happened. We presume it happened because of bad input.
 
