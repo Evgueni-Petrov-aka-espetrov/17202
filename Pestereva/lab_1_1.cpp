@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-unsigned int hash(char buf[], int templ_len, unsigned int *max_pow) {
+unsigned int hash(const char buf[], int templ_len, unsigned int *max_pow) {
 	int i = 0;
 	*max_pow = 1;
 	unsigned int s = 0;
@@ -20,16 +20,17 @@ unsigned int hash_shift(unsigned char buf_first, unsigned char buf_last, unsigne
 int read(char buf[], int templ_len, int count, int *buf_pos, char *buf_first) {
 	*buf_first = buf[*buf_pos];
 	while (count--) {
-		buf[*buf_pos] = getchar();
-		if (buf[*buf_pos] == EOF) {
+		int k = getchar();
+		if (k == EOF) {
 			return 0;
 		}
+		buf[*buf_pos] = k;
 		*buf_pos = (*buf_pos + 1) % templ_len;
 	}
 	return 1;
 }
 
-void search(char templ[], int templ_len) {
+void search(const char templ[], int templ_len) {
 	char buf[17];
 	int count = templ_len;
 	int buf_pos = 0;

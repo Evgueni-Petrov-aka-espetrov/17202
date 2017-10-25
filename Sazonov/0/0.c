@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include <stdlib.h>
 
 int checkB1B2(int b1, int b2) { // проверка на корректные значения b1 и b2
     if (b1 < 2 || b2 < 2 || b1 > 16 || b2 > 16) return 1;
@@ -12,14 +13,10 @@ int inputNcheck(FILE *input_file, char *input_array, int *dotnum, int *endnum) {
     do {
         fscanf(input_file, "%c", &input_array[++enumerator]);
         if (input_array[enumerator] == '.') {
-            if (*dotnum != -1) { // более одной точки в строке => badinput
-                return 1;
-            }
+            if (*dotnum != -1) return 1; // более одной точки в строке => badinput
             *dotnum = enumerator;
         }
-        if(input_array[enumerator] == '\r'){
-            --enumerator;
-        }
+        if (input_array[enumerator] == '\r') --enumerator;
     } while (input_array[enumerator] != '\n'); // ввод всей строки
     *endnum = enumerator;
     if (*dotnum == *endnum - 1 || *dotnum == 0 || *endnum == 0)
@@ -58,7 +55,7 @@ char B2toChar(int b2_value) { // конвертация численного з�
     return out[b2_value];
 }
 
-double remain(double numerator, long long int denominator){
+double remain(double numerator, long long int denominator) {
     return numerator - (floor(numerator / denominator) * denominator);
 }
 
@@ -67,14 +64,15 @@ int main() {
     input_file = fopen("in.txt", "rt");
     output_file = fopen("out.txt", "wt");
 
-    if(input_file == NULL) return 1;
+    if (input_file == NULL) return 1;
 
-    int b1, b2, endnum = -1, dotnum = -1; // переменные для хранения CC b1, CC b2, длины числа и целой части числа соответственно
+    int b1, b2, endnum = -1, dotnum = -1; // переменные для хранения ОС b1, ОС b2; длины числа и целой части числа соответственно
 
     fscanf(input_file, "%d %d\n", &b1, &b2);
-    char input_array[13];
+    char *input_array = malloc(13 * sizeof(char));
 
-    if (checkB1B2(b1, b2) || inputNcheck(input_file, &input_array[0], &dotnum, &endnum) || charToDecValue(&input_array[0], b1, &dotnum, &endnum)) {
+    if (checkB1B2(b1, b2) || inputNcheck(input_file, &input_array[0], &dotnum, &endnum) ||
+        charToDecValue(&input_array[0], b1, &dotnum, &endnum)) {
         fprintf(output_file, "bad input");
         fclose(input_file);
         fclose(output_file);
@@ -83,28 +81,36 @@ int main() {
 
     fclose(input_file);
     double decimal = 0;
+
+    dotnum = dotnum != -1 ? dotnum : endnum;
+
     for (int power = 0; power < dotnum; ++power)
         decimal += B1toDec(input_array[power], b1, dotnum - power - 1);
     long long int power = maxB2pow(decimal, b2);
+
     while (power >= 1) {
-        fprintf(output_file, "%c", B2toChar((int)  floor(decimal / power)));
+        fprintf(output_file, "%c", B2toChar((int) floor(decimal / power)));
         decimal = remain(decimal, power);
         power /= b2;
     }
-    if (dotnum == -1) {
+
+    if (dotnum == endnum) {
         fclose(output_file);
         return 0;
     }
+
     fprintf(output_file, ".");
     double decimal_d = 0;
     for (int q = -1; q > dotnum - endnum; --q) {
         decimal_d += B1toDec(input_array[dotnum - q], b1, q);
     }
+
     for (int q = 0; q < 13; ++q) {
         decimal_d *= b2;
         fprintf(output_file, "%c", B2toChar((int) decimal_d));
         decimal_d -= (int) decimal_d;
     }
+
     fclose(output_file);
     return 0;
 }

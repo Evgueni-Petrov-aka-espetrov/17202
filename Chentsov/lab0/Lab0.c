@@ -1,19 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#define MAX_STR 13
 void lower(int length, char *x){
     int i;
     for(i = 0;i < length;i ++)
         if((x[i] >= 'A') && (x[i] <= 'F'))
             x[i] += 'a' - 'A';
-}
-void test_about_point(int *point, char *x, int *length,int *no_point){
-    if(*point < 0){
-        x[*length] = '.';
-        *point = *length;
-        *length ++;
-        *no_point = 0;
-        }
 }
 int hex2int(int hex){
     if(hex <= '9')
@@ -25,7 +18,7 @@ int int2hex(int in){
         return in + '0';
     return in + 'a' - 10;
 }
-int check_the_number(int length, char *x, int b1){
+int check_the_number(int length, const char *x, int b1, int b2, int point){
     int i, bad_input = 0;
     for(i = 0;i < length;i ++)
         if(x[i] == '.')
@@ -38,16 +31,20 @@ int check_the_number(int length, char *x, int b1){
             else
                 if(((x[i] < '0') || (x[i] > '9')) && ((x[i] < int2hex(10)) || (x[i] > int2hex(15))))
                     bad_input += 2;
-        return bad_input;
+    if((b1 < 2) || (b1 > 16) || (b2 < 2) || (b2 > 16) || (bad_input > 1) || (x[length - 1] == '.') || (point == 0)){
+        printf("bad input");
+        return 0;
+    }
+    return 1;
 }
-long long calculation_of_integer_part(int point, char *x, int b1){
+long long calculation_of_integer_part(int point, const char *x, int b1){
     int i;
     long long result = 0;
     for(i = 0;i < point;i ++)
         result += hex2int(x[i]) * (long long)powl(b1,(point - i - 1));
     return result;
 }
-double calculation_of_fractional_part(int point, int length, char *x, int b1){
+double calculation_of_fractional_part(int point, int length, const char *x, int b1){
     int i;
     double result = 0;
     for(i = point + 1;i < length;i ++)
@@ -75,7 +72,7 @@ int making_of_fractional_part(double fractional_part, char *line, int length_of_
         line[length_of_integer_part] = '.';
         i = 1;
         int remainder;
-        while((fractional_part != 0) && (i < 13)){
+        while((fractional_part != 0) && (i < MAX_STR)){
             fractional_part *= b2;
             remainder = (int)fractional_part % b2;
             line[length_of_integer_part + i] = int2hex(remainder);
@@ -95,15 +92,13 @@ int main() {
     lower(length,x);
     int point = strchr(x,'.') - x;
     int no_point = 1;
-    test_about_point(&point, x, &length, &no_point);
-    int bad_input = check_the_number(length, x, b1);
-    if((b1 < 2) || (b1 > 16) || (b2 < 2) || (b2 > 16) || (bad_input > 1) || ((no_point) && (x[length - 1] == '.')) || (point == 0))
-        printf("bad input");
-    else{
+    if(point < 0)
+        point = length;
+    if(check_the_number(length, x, b1, b2, point)){
         long long integer_part = calculation_of_integer_part(point, x, b1);
         double fractional_part = calculation_of_fractional_part(point, length, x, b1);
         int length_of_integer_part = calculation_of_length_of_integer_part(b2, integer_part);
-        char line[length_of_integer_part + 13];
+        char line[length_of_integer_part + MAX_STR];
         making_of_integer_part(length_of_integer_part, b2, line, integer_part);
         i = making_of_fractional_part(fractional_part, line, length_of_integer_part, b2);
         length = strlen(line);

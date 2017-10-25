@@ -13,22 +13,30 @@ void swapElements(int *first, int *second) {
     *second = buffer;
 }
 
-int partition(int *array, int low_index, int high_index) {
-    int pivot = array[high_index]; // pivot >= array[k], low_index <= k <= high_index
-    int i = low_index - 1; // array[low_index - 1] <= array[k], low_index <= k <= high_index
+void heapify(int arr[], int n, int i) {
+    int maxIndex = i;
+    int l = 2 * i + 1;
+    int r = 2 * i + 2;
 
-    for (int j = low_index; j < high_index; ++j)
-        if (array[j] <= pivot) swapElements(&array[++i], &array[j]);
+    if (l < n && arr[l] > arr[maxIndex])
+        maxIndex = l;
 
-    swapElements(&array[++i], &array[high_index]);
-    return i;
+    if (r < n && arr[r] > arr[maxIndex])
+        maxIndex = r;
+
+    if (maxIndex != i) {
+        swapElements(&arr[i], &arr[maxIndex]);
+        heapify(arr, n, maxIndex);
+    }
 }
 
-void quickSort(int *array, int low_index, int high_index) {
-    if (low_index < high_index) {
-        int part = partition(array, low_index, high_index);
-        quickSort(array, low_index, part - 1);
-        quickSort(array, part + 1, high_index);
+void heapSort(int *arr, int n) {
+    for (int i = n / 2 - 1; i >= 0; --i)
+        heapify(arr, n, i);
+
+    for (int i = n - 1; i >= 0; --i) {
+        swapElements(&arr[0], &arr[i]);
+        heapify(arr, i, 0);
     }
 }
 
@@ -38,9 +46,10 @@ int *inputArray(FILE *input_file, int *n) {
     int *arrayend = array + *n;
     for (; array < arrayend; ++array) fscanf(input_file, "%d ", array);
     fclose(input_file);
-    quickSort(array, 0, *n - 1);
+    heapSort(array, n);
     return array;
 }
+
 
 int main() {
     int n;
