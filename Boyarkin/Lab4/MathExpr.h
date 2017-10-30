@@ -27,7 +27,7 @@ private:
 	int CheckBrackets() const;
 	
 	bool Add(char op, function<int(int, int)> behavior, list<operatorMap>::iterator pos);
-	void CalculateExpression(); // TODO
+	void CalculateExpression();
 
 	pair<list<operatorMap>::iterator, operatorMap::iterator> FindOperator(char op);
 	static int NumberTokenToInt(string::const_iterator beg, string::const_iterator end);
@@ -61,6 +61,4 @@ public:
 	bool ExistsOperator(char op) const;
 	string GetExpressionString() const;
 	pair<bool, int> GetExpressionResult();
-
-	//void PrintPriorities();
 };

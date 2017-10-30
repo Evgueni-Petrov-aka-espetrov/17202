@@ -295,16 +295,6 @@ pair<bool, int> MathExpr::GetExpressionResult() {
 	return make_pair(isCorrect, result);
 }
 
-/*void MathExpr::PrintPriorities() {
-	for (auto pr_iter = priority.crbegin(); pr_iter != priority.crend(); ++pr_iter) {
-		cout << pr_iter->first << ":";
-		for (auto op_iter = pr_iter->second.crbegin(); op_iter != pr_iter->second.crend(); ++op_iter) {
-			cout << ' ' << (*op_iter)->symbol;
-		}
-		cout << '\n';
-	}
-}*/
-
 int MathExpr::NumberTokenToInt(string::const_iterator beg, string::const_iterator end) {
 	int result = 0;
 
