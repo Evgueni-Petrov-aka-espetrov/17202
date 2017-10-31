@@ -67,15 +67,18 @@ MathExpr& MathExpr::operator= (string &&rhs) {
 	return *this;
 }
 
-int MathExpr::CheckBrackets() const {
+int MathExpr::CheckExpression() const {
 	int level = 0;
 	int max_level = 0;
+
+	if (expression.empty()) { return -1; }
+	if (isOperatorChar(*expression.cbegin())) { return -1; }
+	if (isOperatorChar(*(--expression.cend()))) { return -1; }
 
 	for (auto it = expression.cbegin(); it != expression.cend(); ++it) {
 		if (*it == '(') {
 			++level;
 			if (level > max_level) { max_level = level; }
-
 
 			if (it != expression.cbegin()) {
 				if ((*(it - 1) == ')') || isdigit(*(it - 1))) { return -1; }
@@ -95,24 +98,34 @@ int MathExpr::CheckBrackets() const {
 			if ((it + 1) != expression.cend()) {
 				if ((*(it + 1) == '(') || isdigit(*(it + 1))) { return -1; }
 			}
+
+			if (level < 0) { return -1; }
 		}
-
-		if (level < 0) { return -1; }
 	}
-	if (level != 0) { return -1; }
 
-	return max_level;
+	return (level == 0) ? max_level : -1;
 }
 
-bool MathExpr::Add(char op, function<int(int, int)> behavior, list<operatorMap>::iterator pos) {
-	if (isdigit(op) || (op == '(') || (op == ')')) { return false; }
+bool MathExpr::Add(const string &op, function<int(int, int)> behavior, list<operatorMap>::iterator pos) {
+	bool res = true;
 
-	isCalculated = false;
+	for (auto it = op.cbegin(); it != op.cend(); ++it) {
+		if (!isOperatorChar(*it)) { res = false; break; }
+	}
+	if (op.empty()) { res = false; }
+	if (ExistsOperator(op)) { res = false; }
 
-	operatorSet.insert(op);
-	pos->insert(make_pair(op, behavior));
+	if (res) {
+		isCalculated = false;
 
-	return true;
+		operatorSet.insert(op);
+		pos->insert(make_pair(op, behavior));
+	}
+	else {
+		if (pos->empty()) { priorityOperators.erase(pos); }
+	}
+
+	return res;
 }
 
 void MathExpr::CalculateExpression() {
@@ -120,10 +133,11 @@ void MathExpr::CalculateExpression() {
 	isCalculated = true;
 	isCorrect = false;
 
-	int max_level = CheckBrackets();
+	int max_level = CheckExpression();
 	if (max_level == -1) { return; }
 
-	Triada t;
+	string op;
+	Triada triada;
 	list<int> numbers;
 	list<Triada> operators;
 	vector<queue<list<Triada>::iterator>> prior;
@@ -138,7 +152,7 @@ void MathExpr::CalculateExpression() {
 		if (isdigit(*it)) {
 
 			numberIter = it;
-			while (numberIter != expression.cend() && isdigit(*numberIter)) { ++numberIter; }
+			while ((numberIter != expression.cend()) && isdigit(*numberIter)) { ++numberIter; }
 			numbers.push_back(NumberTokenToInt(it, numberIter));
 
 			it = numberIter;
@@ -152,24 +166,27 @@ void MathExpr::CalculateExpression() {
 	for (auto it = expression.cbegin(); it != expression.cend(); ++it) {
 		if (*it == '(') { ++level; continue; }
 		if (*it == ')') { --level; continue; }
-		if (isdigit(*it)) { continue; }
+		if (!isOperatorChar(*it)) { continue; }
 
-		if (!ExistsOperator(*it)) { return; }
+		// Get operator
+		op.clear();
+		while ((it != expression.cend()) && isOperatorChar(*it)) {
+			op.push_back(*it);
+			++it;
+		}
+		if (!ExistsOperator(op)) { return; }
 
-		t.op = *it;
-		t.level = level;
+		triada.op = FindOperator(op);
+		triada.level = level;
 
-		if (numPtr == numbers.end()) { return; }
-		t.left = numPtr;
-
+		triada.left = numPtr;
 		++numPtr;
+		triada.right = numPtr;
 
-		if (numPtr == numbers.end()) { return; }
-		t.right = numPtr;
+		operators.push_back(triada);
 
-		operators.push_back(t);
+		--it;
 	}
-	if ((operators.size() + 1) != numbers.size()) { return; }
 
 	// Get order of calculating operators:
 	prior.resize(max_level + 1);
@@ -178,7 +195,7 @@ void MathExpr::CalculateExpression() {
 		for (auto triadaIter = operators.begin(); triadaIter != operators.end(); ++triadaIter) {
 			for (auto mapIter = listIter->cbegin(); mapIter != listIter->cend(); ++mapIter) {
 
-				if (triadaIter->op == mapIter->first) {
+				if ((triadaIter->op.first == listIter) && (triadaIter->op.second == mapIter)) {
 					prior[triadaIter->level].push(triadaIter);
 				}
 			}
@@ -191,16 +208,18 @@ void MathExpr::CalculateExpression() {
 
 			auto item = pIter->front();
 			auto item_right = item;
-			auto& func = FindOperator(item->op).second->second;
+			auto& func = pIter->front()->op.second->second;
 
 			++item_right;
 
 			*(item->left) = func(*(item->left), *(item->right));
-			if (item_right != operators.end()) {
+			if (item_right != operators.cend()) {
 				item_right->left = item->left;
 			}
 
+			numbers.erase(item->right);
 			operators.erase(item);
+
 			pIter->pop();
 		}
 	}
@@ -209,47 +228,42 @@ void MathExpr::CalculateExpression() {
 	isCorrect = true;
 }
 
-bool MathExpr::AddOperatorWithSamePriority(char op, function<int(int, int)> behavior, char relativeOperator) {
-	if (ExistsOperator(op)) { return false; }
+bool MathExpr::AddOperatorWithSamePriority(const string &op, function<int(int, int)> behavior, const string &relativeOperator) {
 	if (!ExistsOperator(relativeOperator)) { return false; }
 
 	auto listIter = FindOperator(relativeOperator).first;
 	return Add(op, behavior, listIter);
 }
 
-bool MathExpr::AddOperatorWithHigherPriority(char op, function<int(int, int)> behavior, char relativeOperator) {
-	if (ExistsOperator(op)) { return false; }
+bool MathExpr::AddOperatorWithHigherPriority(const string &op, function<int(int, int)> behavior, const string &relativeOperator) {
 	if (!ExistsOperator(relativeOperator)) { return false; }
 
 	auto listIter = FindOperator(relativeOperator).first;
 	listIter = priorityOperators.insert(listIter, operatorMap());
+
 	return Add(op, behavior, listIter);
 }
 
-bool MathExpr::AddOperatorWithLowerPriority(char op, function<int(int, int)> behavior, char relativeOperator) {
-	if (ExistsOperator(op)) { return false; }
+bool MathExpr::AddOperatorWithLowerPriority(const string &op, function<int(int, int)> behavior, const string &relativeOperator) {
 	if (!ExistsOperator(relativeOperator)) { return false; }
 
 	auto listIter = FindOperator(relativeOperator).first;
 	listIter = priorityOperators.insert(++listIter, operatorMap());
+
 	return Add(op, behavior, listIter);
 }
 
-bool MathExpr::AddOperatorWithHighestPriority(char op, function<int(int, int)> behavior) {
-	if (ExistsOperator(op)) { return false; }
-
+bool MathExpr::AddOperatorWithHighestPriority(const string &op, function<int(int, int)> behavior) {
 	priorityOperators.push_front(operatorMap());
 	return Add(op, behavior, priorityOperators.begin());
 }
 
-bool MathExpr::AddOperatorWithLowestPriority(char op, function<int(int, int)> behavior) {
-	if (ExistsOperator(op)) { return false; }
-
+bool MathExpr::AddOperatorWithLowestPriority(const string &op, function<int(int, int)> behavior) {
 	priorityOperators.push_back(operatorMap());
 	return Add(op, behavior, --priorityOperators.end());
 }
 
-pair<list<operatorMap>::const_iterator, operatorMap::const_iterator> MathExpr::FindOperator(char op) const {
+pair<list<operatorMap>::const_iterator, operatorMap::const_iterator> MathExpr::FindOperator(const string &op) const {
 	if (!ExistsOperator(op)) {
 		return make_pair(priorityOperators.cend(), operatorMap::const_iterator());
 	}
@@ -265,7 +279,7 @@ pair<list<operatorMap>::const_iterator, operatorMap::const_iterator> MathExpr::F
 	return make_pair(priorityOperators.cend(), operatorMap::const_iterator());
 }
 
-pair<list<operatorMap>::iterator, operatorMap::iterator> MathExpr::FindOperator(char op) {
+pair<list<operatorMap>::iterator, operatorMap::iterator> MathExpr::FindOperator(const string &op) {
 	if (!ExistsOperator(op)) {
 		return make_pair(priorityOperators.end(), operatorMap::iterator());
 	}
@@ -281,7 +295,7 @@ pair<list<operatorMap>::iterator, operatorMap::iterator> MathExpr::FindOperator(
 	return make_pair(priorityOperators.end(), operatorMap::iterator());
 }
 
-bool MathExpr::ExistsOperator(char op) const {
+bool MathExpr::ExistsOperator(const string &op) const {
 	return operatorSet.find(op) != operatorSet.cend();
 }
 
@@ -304,4 +318,12 @@ int MathExpr::NumberTokenToInt(string::const_iterator beg, string::const_iterato
 	}
 
 	return result;
+}
+
+bool MathExpr::isOperatorChar(char ch) {
+	if (isdigit(ch)) { return false; }
+	if (ch == '(') { return false; }
+	if (ch == ')') { return false; }
+
+	return true;
 }

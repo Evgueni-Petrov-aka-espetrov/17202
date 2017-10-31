@@ -12,28 +12,29 @@
 using namespace std;
 
 // Map which consists of binary operators (symbols and behaviors) with same priority
-typedef map<char, function<int(int, int)>> operatorMap;
+typedef map<string, function<int(int, int)>> operatorMap;
 
 class MathExpr {
 private:
 	list<operatorMap> priorityOperators;
-	set<char> operatorSet;
+	set<string> operatorSet;
 	string expression;
 
 	bool isCalculated;
 	bool isCorrect;
 	int result;
 	
-	int CheckBrackets() const;
+	int CheckExpression() const;
 	
-	bool Add(char op, function<int(int, int)> behavior, list<operatorMap>::iterator pos);
+	bool Add(const string &op, function<int(int, int)> behavior, list<operatorMap>::iterator pos);
 	void CalculateExpression();
 
-	pair<list<operatorMap>::iterator, operatorMap::iterator> FindOperator(char op);
+	pair<list<operatorMap>::iterator, operatorMap::iterator> FindOperator(const string &op);
 	static int NumberTokenToInt(string::const_iterator beg, string::const_iterator end);
+	static bool isOperatorChar(char ch);
 
 	struct Triada {
-		char op;
+		pair<list<operatorMap>::const_iterator, operatorMap::const_iterator> op;
 		int level;
 		list<int>::iterator left, right;
 	};
@@ -50,15 +51,15 @@ public:
 	MathExpr& operator= (const string &rhs);
 	MathExpr& operator= (string &&rhs);
 
-	bool AddOperatorWithSamePriority(char op, function<int(int, int)> behavior, char relativeOperator);
-	bool AddOperatorWithHigherPriority(char op, function<int(int, int)> behavior, char relativeOperator);
-	bool AddOperatorWithLowerPriority(char op, function<int(int, int)> behavior, char relativeOperator);
-	bool AddOperatorWithHighestPriority(char op, function<int(int, int)> behavior);
-	bool AddOperatorWithLowestPriority(char op, function<int(int, int)> behavior);
+	bool AddOperatorWithSamePriority(const string &op, function<int(int, int)> behavior, const string &relativeOperator);
+	bool AddOperatorWithHigherPriority(const string &op, function<int(int, int)> behavior, const string &relativeOperator);
+	bool AddOperatorWithLowerPriority(const string &op, function<int(int, int)> behavior, const string &relativeOperator);
+	bool AddOperatorWithHighestPriority(const string &op, function<int(int, int)> behavior);
+	bool AddOperatorWithLowestPriority(const string &op, function<int(int, int)> behavior);
 
-	pair<list<operatorMap>::const_iterator, operatorMap::const_iterator> FindOperator(char op) const;
+	pair<list<operatorMap>::const_iterator, operatorMap::const_iterator> FindOperator(const string &op) const;
 
-	bool ExistsOperator(char op) const;
+	bool ExistsOperator(const string &op) const;
 	string GetExpressionString() const;
 	pair<bool, int> GetExpressionResult();
 };

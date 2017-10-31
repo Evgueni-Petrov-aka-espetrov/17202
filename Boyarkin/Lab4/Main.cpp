@@ -18,19 +18,19 @@ int main() {
 	string expression;
 	pair<bool, int> result;
 	
-	expr.AddOperatorWithLowestPriority('+', [](int lhs, int rhs) -> int {
+	expr.AddOperatorWithLowestPriority("+", [](int lhs, int rhs) -> int {
 		return lhs + rhs;
 	});
-	expr.AddOperatorWithSamePriority('-', [](int lhs, int rhs) -> int {
+	expr.AddOperatorWithSamePriority("-", [](int lhs, int rhs) -> int {
 		return lhs - rhs;
-	}, '+');
-	expr.AddOperatorWithHigherPriority('*', [](int lhs, int rhs) -> int {
+	}, "+");
+	expr.AddOperatorWithHigherPriority("*", [](int lhs, int rhs) -> int {
 		return lhs * rhs;
-	}, '+');
-	expr.AddOperatorWithSamePriority('/', [](int lhs, int rhs) -> int {
+	}, "+");
+	expr.AddOperatorWithSamePriority("/", [](int lhs, int rhs) -> int {
 		if (rhs == 0) { throw exception("division by zero"); }
 		return lhs / rhs;
-	}, '*');
+	}, "*");
 	
 	getline(in, expression);
 	try {
