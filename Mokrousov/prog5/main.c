@@ -163,10 +163,10 @@ void compress(FILE *in, FILE *out)
     write_map(out, haffman_tree, lastNode, &bf);
     file_flush_write(&bf);
     fflush(out);
-    fputc(0xDE, out);
-    fputc(0xAD, out);
-    fputc(0xBE, out);
-    fputc(0xEF, out);
+    //fputc(0xDE, out);
+    //fputc(0xAD, out);
+    //fputc(0xBE, out);
+    //fputc(0xEF, out);
     encode_data(in, out, bit_sequences, count_chars);
 }
 int read_haffman_tree(FILE *in, tree_node *haffman_tree, int free_pos, BitFile *bf)
@@ -226,13 +226,13 @@ void decompress(FILE *in, FILE *out)
     init_file_read_writer(&bf, in);
     read_haffman_tree(in, haffman_tree, 256, &bf);
     int i;
-    volatile unsigned char temp;
+    //volatile unsigned char temp;
     for (i=256;i<=300;i++)
     {
         //printf("i=%d: %c %d %d\n", i, haffman_tree[i].node_char, haffman_tree[i].childs[0], haffman_tree[i].childs[1]);
     }
-    for (i=0;i<4;i++)
-         temp = (unsigned char) fgetc(in);
+    //for (i=0;i<4;i++)
+    //     temp = (unsigned char) fgetc(in);
     decompress_chars(in, out, haffman_tree, 256);
 };
 int main()
