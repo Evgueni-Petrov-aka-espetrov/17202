@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <fstream>
 #include <memory>
@@ -44,16 +45,16 @@ void heapSort(int *arr, const int n)
 
 void readArray(ifstream *fin, int *massToRead, const int massSize) {
 	for (int i = 0; i < massSize; ++i) {
-		*fin >> massToRead[i];
+		scanf("%d", &massToRead[0] + i);
 	}
 }
 void writeResult(const int *massToWrite, const int massSize) {
 	for (int i = 0; i < massSize; ++i) {
-		cout << massToWrite[i];
+		printf("%d", massToWrite[i]);
 		if (i == (massSize - 1)) {
 			break;
 		}
-		cout << ' ';
+		printf(" ");
 	}
 }
 
@@ -61,11 +62,11 @@ int main()
 {
 	ifstream fin("in.txt");
 	int massSize;
-	fin >> massSize;
+	scanf("%d", &massSize);
 	int *arr = (int*)malloc(sizeof(int)*(massSize));
 	readArray(&fin, &arr[0], massSize);
 	heapSort(arr, massSize);
 	writeResult(arr, massSize);
-	system("pause");
+	//system("pause");
 	free(arr);
 }
