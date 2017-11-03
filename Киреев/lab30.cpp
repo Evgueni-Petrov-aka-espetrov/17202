@@ -1,82 +1,72 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <fstream>
+#include <memory>
 using namespace std;
 
 void swap(int *a, int *b) {
 	int buffer = *a;
 	*a = *b;
 	*b = buffer;
+	return;
+}
+
+void makeHeap(int* arr, const int n, const int i)
+{
+	int largest = i;
+	int left = 2 * i + 1;
+	int right = 2 * i + 2;
+
+	if (left < n && arr[left] > arr[largest])
+		largest = left;
+
+	if (right < n && arr[right] > arr[largest])
+		largest = right;
+
+	if (largest != i)
+	{
+		swap(&arr[i], &arr[largest]);
+		makeHeap(arr, n, largest);
+	}
+}
+
+void heapSort(int *arr, const int n)
+{
+	for (int i = (n / 2) - 1; i > -1; --i) {
+		makeHeap(arr, n, i);
+	}
+
+	for (int i = n - 1; i > -1; i--)
+	{
+		swap(&arr[0], &arr[i]);
+		makeHeap(arr, i, 0);
+	}
 }
 
 void readArray(ifstream *fin, int *massToRead, const int massSize) {
 	for (int i = 0; i < massSize; ++i) {
-		*fin >> massToRead[i];
+		scanf("%d", &massToRead[0] + i);
 	}
 }
-
 void writeResult(const int *massToWrite, const int massSize) {
 	for (int i = 0; i < massSize; ++i) {
-		cout << massToWrite[i];
+		printf("%d", massToWrite[i]);
 		if (i == (massSize - 1)) {
 			break;
 		}
-		cout << ' ';
+		printf(" ");
 	}
 }
 
-int max(const int *mass, const int n, const int i, const int j, const int k) {
-	int m = i;
-	if (j < n && mass[j] > mass[m]) {
-		m = j;
-	}
-	if (k < n && mass[k] > mass[m]) {
-		m = k;
-	}
-	return m;
-}
-
-void downHeap(int *mass, const int massSize, int * i) {
-	while (true) {
-		int j = max(&mass[0], massSize, *i, 2 * *i + 1, 2 * *i + 2);
-		if (j == *i) {
-			break;
-		}
-		int t = mass[*i];
-		mass[*i] = mass[j];
-		mass[j] = t;
-		*i = j;
-	}
-}
-
-void heapSort(int *mass, const int massSize) {
-	for (int i = (massSize - 2) / 2; i >= 0; --i) {
-		downHeap(&mass[0], massSize, &i);
-	}
-	for (int i = 0; i < massSize; ++i) {
-		int tmp = mass[massSize - i - 1];
-		mass[massSize - i - 1] = mass[0];
-		mass[0] = tmp;
-		int zero = 0;
-		downHeap(&mass[0], massSize - i - 1, &zero);
-	}
-}
-
-void main() {
-	int massSize;
+int main()
+{
 	ifstream fin("in.txt");
-	fin >> massSize;
-	if (massSize == 0) {
-		return;
-	}
-
-	int *mass = (int*)malloc(sizeof(int)*massSize);
-
-	readArray(&fin, &mass[0], massSize);
-	heapSort(&mass[0], massSize);
-	writeResult(&mass[0], massSize);
-
-	fin.close();
-	free(mass);
+	int massSize;
+	scanf("%d", &massSize);
+	int *arr = (int*)malloc(sizeof(int)*(massSize));
+	readArray(&fin, &arr[0], massSize);
+	heapSort(arr, massSize);
+	writeResult(arr, massSize);
 	//system("pause");
+	free(arr);
 }
