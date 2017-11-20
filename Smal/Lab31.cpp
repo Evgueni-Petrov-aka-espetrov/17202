@@ -3,14 +3,11 @@
 #include <stdlib.h>
 
 
-void quicksort( int* A,const int size,const FILE* oFile) {
+void quicksort( int* A,const int size) {
 	int hi = size - 1;
 	int lo = 0;
-	//print(A, oFile, size);
 	int p = A[size / 2 ];
-	//fprintf(oFile, "\n%d\n", p);
 	int tmp = 0;
-
 	while (hi > lo) {
 		while (A[hi] > p) hi--;
 		while (A[lo] < p) lo++;
@@ -20,20 +17,18 @@ void quicksort( int* A,const int size,const FILE* oFile) {
 				lo++;
 				}
 			else {
-				//fprintf(oFile, "%d  %d\n", A[lo], A[hi]);
+				
 				tmp = A[lo];
 				A[lo] = A[hi];
 				A[hi] = tmp;
 			}
-			
-			
-			
+				
 
 		}
 	} while (hi > lo);
 	
-	if (hi > 0) quicksort(A , hi, oFile);
-	if (size > lo + 1) quicksort(A + lo, size - lo, oFile);
+	if (hi > 0) quicksort(A , hi);
+	if (size > lo + 1) quicksort(A + lo, size - lo);
 
 }
 
@@ -53,7 +48,7 @@ int main()
 			fscanf(iFile, "%d", &A[i]);
 		}
 
-		quicksort(A, size, oFile);
+		quicksort(A, size);
 
 		for (int i = 0; i < size; i++)
 				fprintf(oFile, "%d ", A[i]);
