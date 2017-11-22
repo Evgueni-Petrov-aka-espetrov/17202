@@ -5,13 +5,13 @@
 #define UNDEFINED -1
 #define INFINITY -1
 
-typedef struct
+struct TVertex
 {
 	int was_used;
 	unsigned long long distance;
 	int prev_node;
 	int has_only_way;
-} TVertex;
+};
 
 
 void error(FILE *in, FILE *out, char *msg, void *malloc1, void *malloc2)
@@ -45,7 +45,7 @@ void read_connectivity_map(FILE *in, FILE *out, int *connectivity_map, int n, in
 	}
 }
 
-int get_least_node(TVertex *nodes, int node_count)
+int get_least_node(struct TVertex *nodes, int node_count)
 {
 	int i, min_dist_index = UNDEFINED;
 	long long min_dist = 1;
@@ -60,7 +60,7 @@ int get_least_node(TVertex *nodes, int node_count)
 	return was_set_min_dist ? min_dist_index : UNDEFINED;
 }
 
-void print_distances(FILE *out, TVertex *nodes, int node_count)
+void print_distances(FILE *out, struct TVertex *nodes, int node_count)
 {
 	int i;
 	for (i = 0; i<node_count; i++)
@@ -76,7 +76,7 @@ void print_distances(FILE *out, TVertex *nodes, int node_count)
 	fputc('\n', out);
 }
 
-void find_shortest_path(FILE *out, TVertex *nodes, int finish_node, int start_node)
+void find_shortest_path(FILE *out, struct TVertex *nodes, int finish_node, int start_node)
 {
 	int buf[5001];
 	int i, pos = 0;
@@ -128,7 +128,7 @@ int main(int argc, char** argv)
 	read_connectivity_map(in, out, connectivity_map, n, m);
 	if (n == 0)
 		error(in, out, "", NULL, NULL);
-	TVertex *nodes = (TVertex*)malloc(sizeof(TVertex)*n);
+	struct TVertex *nodes = (struct TVertex*)malloc(sizeof(struct TVertex)*n);
 	for (i = 0; i<n; i++)
 	{
 		nodes[i].distance = INFINITY;
