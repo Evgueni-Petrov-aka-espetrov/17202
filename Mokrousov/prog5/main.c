@@ -237,13 +237,13 @@ void decompress(FILE *in, FILE *out)
 };
 int main()
 {
-    //MessageBox(0, "12345", "a", MB_OK);
-    FILE *in = fopen("in.txt","rb");
-    if (in==NULL) return -1;
-    FILE *out = fopen("out.txt","wb");
-    if (out==NULL) return -1;
+    FILE *in, *out;
     char cmd;
-    volatile char temp;
+    volatile char temp;	
+    in = fopen("in.txt","rb");
+    if (in==NULL) return -1;
+    out = fopen("out.txt","wb");
+    if (out==NULL) return -1;
     cmd = (char) fgetc(in);
     temp = (char) fgetc(in);
     temp = (char) fgetc(in);
