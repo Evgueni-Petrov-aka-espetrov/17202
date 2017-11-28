@@ -8,10 +8,10 @@ typedef struct {
 	char *string;
 } TEvaluator;
 
-int nextSymbol(FILE *fin);
-double expr(FILE *fin);
-double numpar(FILE *fin);
-double term(FILE *fin);
+void TEvaluator_GetNextSymbol(TEvaluator *evaluator);
+double TEvaluator_ProcessSumSub(TEvaluator *evaluator);
+double TEvaluator_ProcessNumBrackets(TEvaluator *evaluator);
+double TEvaluator_ProcessMulDiv(TEvaluator *evaluator);
 void TEvaluator_GetInput(TEvaluator *evaluator);
 int TEvaluator_Check(TEvaluator *evaluator);
 bool isspace(char ch);

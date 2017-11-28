@@ -24,3 +24,8 @@ Sazonov/0/testbuild
 *.vsxproj.filters
 *.tlog
 *.lastbuildstate
+*.idb
+*.pdb
+*.ilk
+*.obj
+*.log
