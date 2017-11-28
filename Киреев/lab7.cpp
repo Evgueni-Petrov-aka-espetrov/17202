@@ -23,7 +23,7 @@ bool readGraph(vector<int> *graph, const int numberOfVertex, const int numberOfE
 		printf("bad number of lines");
 		return false;
 	}
-	for(int i = 0; i < numberOfEdges; ++i) {
+	for (int i = 0; i < numberOfEdges; ++i) {
 		int v1 = 0, v2 = 0;
 		fscanf(stream, "%d", &v1);
 		fscanf(stream, "%d", &v2);
@@ -35,7 +35,7 @@ bool readGraph(vector<int> *graph, const int numberOfVertex, const int numberOfE
 			printf("bad vertex");
 			return false;
 		}
-		graph[v1-1].push_back(v2-1);
+		graph[v1 - 1].push_back(v2 - 1);
 	}
 	return true;
 }
@@ -43,23 +43,22 @@ bool deepGo(const int ver, int *color, vector<int> *graph, vector<int> * result)
 	if (color[ver] == 1) return true;
 	if (color[ver] == 2) return false;
 	color[ver] = 1;
-	for (int i = 0; i < graph[ver].size(); ++i) {
+	for (unsigned int i = 0; i < graph[ver].size(); ++i) {
 		if (deepGo(graph[ver][i], &color[0], &graph[0], &result[0])) {
-			result->push_back(ver + 1);
 			return true;
 		}
 	}
-	result->push_back(ver+1);
+	result->push_back(ver + 1);
 	color[ver] = 2;
 	return false;
 }
 void printRes(const int *result, int size) {
-	for (int i = size-1; i >= 0; --i) {
-		if(result[i]!= 0)
+	for (int i = size - 1; i >= 0; --i) {
+		if (result[i] != 0)
 			cout << result[i] << " ";
 	}
 }
-void topSort(const int numOfVer, const int numbOfEdges, FILE *stream){
+void topSort(const int numOfVer, const int numbOfEdges, FILE *stream) {
 	vector <vector<int>> graph(numOfVer);
 	vector <int> result(numOfVer);
 	vector <int> color(numOfVer);
@@ -81,7 +80,7 @@ void topSort(const int numOfVer, const int numbOfEdges, FILE *stream){
 
 	printRes(&result[0], result.size());
 }
-void main(){
+void main() {
 	FILE *stream = openInputStream();
 	int numOfVer = 0, numOfEdges = 0;
 	fscanf(stream, "%d %d", &numOfVer, &numOfEdges);
