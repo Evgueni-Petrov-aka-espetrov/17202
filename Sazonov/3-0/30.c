@@ -37,12 +37,12 @@ int *inputArray(FILE *input_file, int *n) {
     int *array = (int *) malloc(*n * sizeof(int));
     for (int i = 0; i < *n; ++i) fscanf(input_file, "%d ", &array[i]);
     fclose(input_file);
-    quickSort(array, 0, *n - 1);
     return array;
 }
 
 int main() {
     int n, *a = inputArray(fopen("in.txt", "r"), &n);
+    quickSort(a, 0, n - 1);
     outputArray(fopen("out.txt", "w"), a, n);
     return 0;
 }
