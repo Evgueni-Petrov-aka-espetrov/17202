@@ -2,9 +2,8 @@
 #include <stdlib.h>
 
 void outputArray(FILE *output_file, int *array, int n) {
-    for (int *arrayend = array + n; array < arrayend; ++array) fprintf(output_file, "%d ", *array);
+    for (int i = 0; i < n; ++i) fprintf(output_file, "%d ", array[i]);
     fclose(output_file);
-    free(array);
 }
 
 void swapElements(int *first, int *second) {
@@ -43,17 +42,16 @@ void heapSort(int *arr, int n) {
 int *inputArray(FILE *input_file, int *n) {
     fscanf(input_file, "%d", n);
     int *array = (int *) malloc(*n * sizeof(int));
-    int *arrayend = array + *n;
-    for (; array < arrayend; ++array) fscanf(input_file, "%d ", array);
+    for (int i = 0; i < *n; ++i) fscanf(input_file, "%d ", &array[i]);
     fclose(input_file);
-    heapSort(array, n);
     return array;
 }
 
 
 int main() {
-    int n;
-    int *a = inputArray(fopen("in.txt", "r"), &n);
+    int n, *a = inputArray(fopen("in.txt", "r"), &n);
+    heapSort(a, n);
     outputArray(fopen("out.txt", "w"), a, n);
+    free(a);
     return 0;
 }
