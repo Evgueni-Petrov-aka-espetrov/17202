@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 void outputArray(FILE *output_file, int *array, int n) {
-    for (int *arrayend = array + n; array < arrayend; ++array) fprintf(output_file, "%d ", *array);
+    for (int i = 0; i < n; ++i) fprintf(output_file, "%d ", array[i]);
     fclose(output_file);
     free(array);
 }
@@ -35,14 +35,14 @@ void quickSort(int *array, int low_index, int high_index) {
 int *inputArray(FILE *input_file, int *n) {
     fscanf(input_file, "%d", n);
     int *array = (int *) malloc(*n * sizeof(int));
-    for (int *arrayend = array + *n; array < arrayend; ++array) fscanf(input_file, "%d ", array);
+    for (int i = 0; i < *n; ++i) fscanf(input_file, "%d ", &array[i]);
     fclose(input_file);
     quickSort(array, 0, *n - 1);
     return array;
 }
 
 int main() {
-    int n;
-    outputArray(fopen("out.txt", "w"), inputArray(fopen("in.txt", "r"), &n), n);
+    int n, *a = inputArray(fopen("in.txt", "r"), &n);
+    outputArray(fopen("out.txt", "w"), a, n);
     return 0;
 }
