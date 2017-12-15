@@ -48,17 +48,17 @@ char* readStr(FILE* stream, char* str, const int size, const int num, int* chCou
 	}
 	return str;
 }
-int findMatches(const struct offsetTable* tempTable, const int tempSize, const char* str, const int chCounter) {
+int findMatches(const struct offsetTable* tempTable, const int tempSize, const char* str, const int chCounter, FILE* outStream) {
 	for (int i = tempSize - 1; i >= 0; --i) {
 		if (str[i] == tempTable[i].ch) {
-			printf("%d ", chCounter - tempSize + 1 + i);
+			fprintf(outStream, "%d ", chCounter - tempSize + 1 + i);
 		}
 		if (str[i] != tempTable[i].ch) {
-			printf("%d ", chCounter - tempSize + 1 + i);
+			fprintf(outStream, "%d ", chCounter - tempSize + 1 + i);
 			for (int j = tempSize - 1; j >= tempSize - 1 - i; --j) {
 				if (str[tempSize - 1] == tempTable[j].ch) {
 					if (tempTable[j].val - 1 == 0) return tempSize;
-					return tempTable[j].val-1;
+					return tempTable[j].val - 1;
 				}
 			}
 			return tempSize;
@@ -67,17 +67,19 @@ int findMatches(const struct offsetTable* tempTable, const int tempSize, const c
 	return tempSize;
 }
 void boyerMoore(FILE* stream, char* temp, const int tempSize) {
+	FILE* outStream = fopen("out.txt", "w");
 	struct offsetTable* tempTable = buildTable(temp, tempSize);
 	char* str = (char*)malloc(sizeof(char)*tempSize);
 	str[0] = -1;
 	int chCounter = 0;
 	str = readStr(stream, str, tempSize, tempSize, &chCounter);
 	while (!feof(stream)) {
-		int a = findMatches(tempTable, tempSize, str, chCounter);
+		int a = findMatches(tempTable, tempSize, str, chCounter, outStream);
 		str = readStr(stream, str, tempSize, a, &chCounter);
 	}
 	free(str);
 	free(tempTable);
+	fclose(outStream);
 }
 void main() {
 	FILE* stream = fopen("in.txt", "r");
@@ -86,4 +88,5 @@ void main() {
 	temp = readTemp(stream, &tempSize);
 	boyerMoore(stream, temp, tempSize);
 	free(temp);
+	fclose(stream);
 }
