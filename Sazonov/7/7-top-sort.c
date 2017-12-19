@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+/* Еще не протестировал */
+
 int findNextDestination(int num, int lastChecked, int vert, const int edge[vert][vert]) {
     for (int i = ++lastChecked; i < vert; ++i)
         if (edge[num][i]) return i;
