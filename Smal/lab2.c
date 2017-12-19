@@ -2,13 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-void read(char* string, const FILE* iFile) {
-	char tmp = fgetc(iFile);
+void read(char* string, FILE* iFile) {
+	char tmp = (char)fgetc(iFile);
 	int i = -1;
 	while (tmp != '\n' && i < 9) {
 		i++;
 		string[i] = tmp;
-		tmp = fgetc(iFile);
+		tmp = (char)fgetc(iFile);
 	}
 	string[i + 1] = '\0';
 }
@@ -20,22 +20,19 @@ int char_to_int(char ch){
 		if (digits[i] == ch)
 			return i;
 	}
-
 	return -1;
-
 }
 
 
 int input_test(char* string) {
 	int tmp[10] = { 0 };
-	for (int i = 0; i < strlen(string); i++) {
+	for (unsigned int i = 0; i < strlen(string); i++) {
 		if (char_to_int(string[i]) == -1)
 			return 1;
 		tmp[char_to_int(string[i])] += 1;
 		if (tmp[char_to_int(string[i])] > 1 )
 			return 1;
 	}
-	for (int i = 0; i < 10; i++)
 	return 0;
 
 }
@@ -46,8 +43,7 @@ void swap(char* a1, char* a2) {
 	*a2 = tmp;
 }
 
-int reverse(char* string, int position) {
-	int tmp;
+void reverse(char* string, int position) {
 	int j = strlen(string) - 1;
 	int i = position;
 	
@@ -58,7 +54,7 @@ int reverse(char* string, int position) {
 	}
 }
 
-int* gen_next_reshuffle(char* string) {
+char* gen_next_reshuffle(char* string) {
 	int i = 0;
 	int t = 0;
 	for (i = strlen(string) - 2; i >= 0; i--) {
@@ -67,10 +63,8 @@ int* gen_next_reshuffle(char* string) {
 			break;
 		}
 	}
-
 	if (t == 0)
 		return NULL;
-
 	int j;
 	int tmp;
 	char min = '9';
@@ -86,7 +80,7 @@ int* gen_next_reshuffle(char* string) {
 	return string;
 }
 
-void gen_reshuffles(char* string, int n, const FILE* oFile) {
+void gen_reshuffles(char* string, int n, FILE* oFile) {
 	for (int i = 0; i < n; i++) {
 		string = gen_next_reshuffle(string);
 		if (string == NULL)
@@ -95,6 +89,7 @@ void gen_reshuffles(char* string, int n, const FILE* oFile) {
 		fprintf(oFile, "%s\n", string);
 	}
 }
+
 
 int main() {
 	FILE *iFile = fopen("in.txt", "r");
@@ -110,7 +105,6 @@ int main() {
 	}
 	
 	gen_reshuffles(string, n, oFile);
-
 
 	fclose(iFile);
 	fclose(oFile);
