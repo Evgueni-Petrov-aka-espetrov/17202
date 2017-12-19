@@ -8,17 +8,16 @@ char* read(FILE* iFile, char* model) {
 	int i;
 	fgets(model, 18, iFile);
 	model[strlen(model) - 1] = '\0';
-	int len_model = strlen(model);
+	//int len_model = strlen(model);
 	fseek(iFile, 0, SEEK_END);
 	int len_string = ftell(iFile);
 	len_string -= strlen(model);
 	fseek(iFile, strlen(model) + 2, SEEK_SET);
 	char* string = (char*)malloc(sizeof(char) * len_string);
 	for (i = 0; i < len_string - 1; i++) {
-		string[i] = fgetc(iFile);
+		string[i] = (char)fgetc(iFile);
 	}
 	string[i] = '\0';
-
 	return string;
 }
 
@@ -27,7 +26,7 @@ int* setpows(int size) {
 
 	int* pows = (int*)malloc(sizeof(int)*size);
 	for (int i = 0; i < size; i++){
-		pows[i] = pow(3, i);
+		pows[i] =(int)(pow(3, i));
 	}
 	return pows;
 }
@@ -60,8 +59,9 @@ int change_hash(char ch_del, char ch_new, int hash,int size_of_model, int* pows)
 	return hash;
 }
 
+
 void compare_str(char* string, char* model, int position, FILE* oFile) {
-	for (int i = 0; i < strlen(model); i++) {
+	for (unsigned int i = 0; i < strlen(model); i++) {
 		fprintf(oFile, "%d ", i + position + 1);
 
 		if (string[i + position] != model[i]) {
@@ -71,11 +71,11 @@ void compare_str(char* string, char* model, int position, FILE* oFile) {
 	}
 }
 
-int rabin_karp(char* string, char* model, FILE* oFile, int* pows) {
+void rabin_karp(char* string, char* model, FILE* oFile, int* pows) {
 	int modelhash = sethash(model, pows, strlen(model));
 	fprintf(oFile, "%d ", modelhash);
 	int hash = sethash(string, pows, strlen(model));
-	for (int i = 0; i < strlen(string) - strlen(model); i++) {
+	for (unsigned int i = 0; i < strlen(string) - strlen(model); i++) {
 		
 		if (modelhash == hash) {
 			compare_str(string, model, i, oFile);
@@ -84,7 +84,6 @@ int rabin_karp(char* string, char* model, FILE* oFile, int* pows) {
 		
 	}
 
-	return hash;
 }
 
 int main(){
@@ -92,13 +91,11 @@ int main(){
 	FILE *oFile = fopen("out.txt", "w");
 	char model[18] = { 0 };
 
-	int i = 0;
-	char c;
 	char* string = read(iFile, model);
 	
 	int* pows = setpows(strlen(model));
 
-	int hash = rabin_karp(string, model, oFile, pows);
+	rabin_karp(string, model, oFile, pows);
 
 	free(pows);
 	free(string);
