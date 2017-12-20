@@ -45,13 +45,13 @@ long double sys_to_dec(int b1, char *X) {
     ++X;
 
 
-    for (i = 0; integer_part > 0; ++i) { //ñóììà ðàçðÿäîâ äî çàïÿòîé
+    for (i = 0; integer_part > 0; ++i) { //summa razradov do zapyatoy
         sum += (integer_part % b1) * pow(b1, i);
         integer_part /= b1;
     }
 
 
-    for (i = -1; (c = *X) != '\0'; --i) { //ñóììà ïîñëå çàïÿòîé
+    for (i = -1; (c = *X) != '\0'; --i) { //summa after zapyatoy
         sum += char_to_dig(c) * pow(b1, i);
         ++X;
     }
@@ -69,7 +69,7 @@ double sys_to_integer_dec(int b1, char *X) {
         ++X;
     }
 
-    for (i = 0; integer_part > 0; ++i) { //ñóììà ðàçðÿäîâ äî çàïÿòîé
+    for (i = 0; integer_part > 0; ++i) { //summa razryadov do zapyatoy
         sum += (integer_part % b1) * pow(b1, i);
         integer_part /= b1;
     }
@@ -85,13 +85,13 @@ void dec_to_sys(long double X, int b2) {
     long double fractional_part;
 
 
-    do { //ñ÷èòàåò öåëóþ ÷àñòü
+    do { //integer part
         integer_result_str[i++] = dig_to_char(integer_part % b2);
         integer_part /= b2;
         } while (integer_part);
     integer_result_str[i] = '\0';
 
-    int len = i; //ðàçâîðà÷èâàåò ñòðîêó
+    int len = i; //razvorachivaem integer part
     for (i = 0; i < len / 2; ++i) {
         int temp = integer_result_str[i];
         integer_result_str[i] = integer_result_str[len - i - 1];
@@ -99,7 +99,7 @@ void dec_to_sys(long double X, int b2) {
     }
 
 
-    i = 0; //ïîäñ÷åò äðîáíîé ÷àñòè
+    i = 0; //fractional part
     while (fractional_part > 0 && i < 12) {
         fractional_part *= b2;
         integer_part = fractional_part;
