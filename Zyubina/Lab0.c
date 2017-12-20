@@ -45,13 +45,13 @@ long double sys_to_dec(int b1, char *X) {
     ++X;
 
 
-    for (i = 0; integer_part > 0; ++i) { //сумма разрядов до запятой
+    for (i = 0; integer_part > 0; ++i) { //Г±ГіГ¬Г¬Г  Г°Г Г§Г°ГїГ¤Г®Гў Г¤Г® Г§Г ГЇГїГІГ®Г©
         sum += (integer_part % b1) * pow(b1, i);
         integer_part /= b1;
     }
 
 
-    for (i = -1; (c = *X) != '\0'; --i) { //сумма после запятой
+    for (i = -1; (c = *X) != '\0'; --i) { //Г±ГіГ¬Г¬Г  ГЇГ®Г±Г«ГҐ Г§Г ГЇГїГІГ®Г©
         sum += char_to_dig(c) * pow(b1, i);
         ++X;
     }
@@ -69,7 +69,7 @@ double sys_to_integer_dec(int b1, char *X) {
         ++X;
     }
 
-    for (i = 0; integer_part > 0; ++i) { //сумма разрядов до запятой
+    for (i = 0; integer_part > 0; ++i) { //Г±ГіГ¬Г¬Г  Г°Г Г§Г°ГїГ¤Г®Гў Г¤Г® Г§Г ГЇГїГІГ®Г©
         sum += (integer_part % b1) * pow(b1, i);
         integer_part /= b1;
     }
@@ -85,13 +85,13 @@ void dec_to_sys(long double X, int b2) {
     long double fractional_part;
 
 
-    do { //считает целую часть
+    do { //Г±Г·ГЁГІГ ГҐГІ Г¶ГҐГ«ГіГѕ Г·Г Г±ГІГј
         integer_result_str[i++] = dig_to_char(integer_part % b2);
         integer_part /= b2;
         } while (integer_part);
     integer_result_str[i] = '\0';
 
-    int len = i; //разворачивает строку
+    int len = i; //Г°Г Г§ГўГ®Г°Г Г·ГЁГўГ ГҐГІ Г±ГІГ°Г®ГЄГі
     for (i = 0; i < len / 2; ++i) {
         int temp = integer_result_str[i];
         integer_result_str[i] = integer_result_str[len - i - 1];
@@ -99,7 +99,7 @@ void dec_to_sys(long double X, int b2) {
     }
 
 
-    i = 0; //подсчет дробной части
+    i = 0; //ГЇГ®Г¤Г±Г·ГҐГІ Г¤Г°Г®ГЎГ­Г®Г© Г·Г Г±ГІГЁ
     while (fractional_part > 0 && i < 12) {
         fractional_part *= b2;
         integer_part = fractional_part;
