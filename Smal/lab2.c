@@ -66,7 +66,7 @@ char* gen_next_reshuffle(char* string) {
 	if (t == 0)
 		return NULL;
 	int j;
-	int tmp;
+	int tmp = 0;
 	char min = '9';
 	for (j = strlen(string) - 1; j >= i; j--){
 		if (string[j] > string[i] && string[j] <= min) {
