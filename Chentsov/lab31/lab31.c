@@ -18,20 +18,7 @@ void substitution(int *first, int *second){
     *second ^= *first;
     *first ^= *second;
 }
-void sorting(int N, int *sortable, int piloted){
-    int left = 0;
-    int right = N - 1;
-    while(left < right){
-        while(sortable[left] <= piloted)
-            ++ left;
-        while(sortable[right] > piloted)
-            -- right;
-        if(left < right)
-            substitution(&sortable[left],&sortable[right]);
-    }
-    preparation_and_sorting(left,sortable);
-    preparation_and_sorting(N - 1 - right,sortable + right + 1);
-}
+void sorting(int N, int *sortable, int piloted);
 void preparation_and_sorting(int N, int *sortable){
     if(N < 2)
         return;
@@ -47,6 +34,20 @@ void preparation_and_sorting(int N, int *sortable){
     else
         piloted = minimum(sortable[0],sortable[N - 1]);
     sorting(N,sortable,piloted);
+}
+void sorting(int N, int *sortable, int piloted){
+    int left = 0;
+    int right = N - 1;
+    while(left < right){
+        while(sortable[left] <= piloted)
+            ++ left;
+        while(sortable[right] > piloted)
+            -- right;
+        if(left < right)
+            substitution(&sortable[left],&sortable[right]);
+    }
+    preparation_and_sorting(left,sortable);
+    preparation_and_sorting(N - 1 - right,sortable + right + 1);
 }
 int main(){
     int N;
