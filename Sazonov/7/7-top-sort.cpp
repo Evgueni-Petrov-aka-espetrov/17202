@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 
+/* use with -m 1600 */
+
 using namespace std;
 
 void error(int errorCode) {
