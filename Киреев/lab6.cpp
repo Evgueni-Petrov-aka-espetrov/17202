@@ -115,7 +115,10 @@ node* readNode(FILE* input) {
 }
 int main() {
 	FILE* input = fopen("in.txt", "r");
+
 	node* p = readNode(input);
+	fclose(input);
+
 	if (p == NULL) {
 		printf("%d", 0);
 		return 0;
