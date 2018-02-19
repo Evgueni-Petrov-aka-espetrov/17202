@@ -18,21 +18,15 @@ node* nodeConstructor(int key) {
 }
 
 void nodeDestructor(node** p) {
-	if ((*p)->left == NULL && (*p)->right == NULL) {
-		free(*p);
-		return;
-	}
-	if ((*p)->left == NULL) {
-		nodeDestructor(&((*p)->right));
-		return;
-	}
-	if ((*p)->right == NULL) {
+	if ((*p)->left) {
 		nodeDestructor(&((*p)->left));
-		return;
 	}
-	nodeDestructor(&((*p)->right));
-	nodeDestructor(&((*p)->left));
+	if ((*p)->right) {
+		nodeDestructor(&((*p)->right));
+	}
+	free(*p);
 }
+
 int height(node* p) {
 	if (p != NULL) {
 		return p->height;
