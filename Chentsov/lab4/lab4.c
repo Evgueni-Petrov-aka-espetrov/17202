@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #define RADIX 10
-#define MAX_STR 1000
+#define MAX_STR 1002
 int calculation_about_brackets(char symbol,int open_brackets_number,int *extra_brackets){
     if(symbol == '(')
         ++ open_brackets_number;
