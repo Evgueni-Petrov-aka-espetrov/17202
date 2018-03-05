@@ -147,7 +147,7 @@ void avl_free_node(Node* node) {
 	}
 	avl_free_node(node->left);
 	avl_free_node(node->right);
-	avl_free_node(node);
+	free(node);
 	return;
 }
 
