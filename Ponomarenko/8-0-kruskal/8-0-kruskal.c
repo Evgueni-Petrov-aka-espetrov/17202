@@ -32,7 +32,6 @@ Edge* kraskal (Edge* edges, int NumVer,int NumEd) {
 	for (int i = 0; i < NumEd; i++) {
 		int color1 = color_of_ver[edges[i].v1];
 		int color2 = color_of_ver[edges[i].v2];
-		
 		if (color1 != 0 && color2 != 0 && color1 == color2) {
 			continue;
 		}
@@ -52,7 +51,7 @@ Edge* kraskal (Edge* edges, int NumVer,int NumEd) {
 				int color_min = min(color1, color2);
 				int color_max = max(color1, color2);
 
-				for (int j = 0; j < NumVer; j++) {
+				for (int j = 0; j <= NumVer; j++) {
 					if (color_of_ver[j] == color_max) {
 						color_of_ver[j] = color_min;
 					}
@@ -65,13 +64,11 @@ Edge* kraskal (Edge* edges, int NumVer,int NumEd) {
 
 	int ch_color = 0;
 	for (int i = 0; i < NumVer; ++i) {
-		//printf(stderr, "color of  %d is %d \n", i ,color_of_ver[i]);
 		if (color_of_ver[i] == 1) {
 			++ch_color;
 		}
 	
 	}
-
 	if (ch_color != NumVer - 1 || (res_num < NumVer - 1) || (NumVer == 0))  {
 		printf("no spanning tree");
 		exit(0);
@@ -113,7 +110,7 @@ int main() {
 	int NumVer;
 	int NumEd;
 	scanf("%d ", &NumVer);
-	if (NumVer >= 5000) {
+	if (NumVer > 5000) {
 		printf("bad number of vertices");
 		exit(0);
 	}
@@ -147,7 +144,6 @@ int main() {
 	}
 	sort(edges, NumEd);
 	Edge* result = kraskal(edges, NumVer, NumEd);
-	printf("kraskal sort done \n");
 	for (int i = 0; i < NumVer - 1; i++) {
 		printf("%d %d \n", min(result[i].v1, result[i].v2), max(result[i].v1, result[i].v2) );
 	}
