@@ -1,1 +1,4 @@
-# СОВЕРШЕННЫЙ КОД СТИВ МАККОНЕЛ -- ЧИТАТЬ ВСЕМ http://readingbook.ru/engine/download.php?id=1576
+# СОВЕРШЕННЫЙ КОД СТИВ МАККОНЕЛ
+# ЧИТАТЬ ВСЕМ
+http://readingbook.ru/computer-technology/351-sovershennyy-kod-master-klass.html
+# БЕЗ РЕГИСТРАЦИИ И СМС
