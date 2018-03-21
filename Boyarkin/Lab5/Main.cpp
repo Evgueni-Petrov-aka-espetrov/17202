@@ -68,7 +68,7 @@ int main() {
 
 	fgets(mode, 4, in);
 
-	if (mode[0]=='c') {
+	if (mode[0] == 'c') {
 		ocr = get_occurrences(in);
 		cipher = get_cipher(ocr);
 		stream = create_stream(out);
