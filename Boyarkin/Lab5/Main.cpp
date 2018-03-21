@@ -27,28 +27,33 @@ struct huffman_list {
 
 void encode(FILE *in, bit_stream *stream, char **cipher);
 void decode(FILE *out, bit_stream *stream, char **cipher, int count);
-int get_symbol_count(const int *occurrences);
+
+bit_stream* create_stream(FILE *f);
 int get_bit(bit_stream *stream);
 void put_bit(bit_stream *stream, char bit);
 void put_bits(bit_stream *stream, const char *sequence);
 void print_remainder(bit_stream *stream);
-char** get_cipher(int *occurrencies);
-int* get_occurrences(FILE *in);
-int* read_occurrences(FILE *in);
-void save_int_array(const int *a, int n);
+void free_stream(bit_stream *stream);
+
 binary_tree* create_branch();
 binary_tree* build_tree(char **cipher);
 void clear_tree(binary_tree *tree);
-bit_stream* create_stream(FILE *f);
-void free_stream(bit_stream *stream);
-char** create_cipher();
-void free_cipher(char **cipher);
+
 huffman_list* create_list();
 void add_list(huffman_list **list, huffman_list *obj);
 void pop_list(huffman_list **list);
-void clear_list(huffman_list **list);
-void push_char(char **str, char c);
 void combine_symbols(huffman_list *dest, huffman_list *lhs, huffman_list *rhs);
+void clear_list(huffman_list **list);
+
+int get_symbol_count(const int *occurrences);
+int* get_occurrences(FILE *in);
+int* read_occurrences(FILE *in);
+void save_int_array(const int *a, int n);
+
+char** create_cipher();
+char** get_cipher(int *occurrencies);
+void free_cipher(char **cipher);
+
 
 int main() {
 	FILE *in, *out;
@@ -123,14 +128,16 @@ void decode(FILE *out, bit_stream *stream, char **cipher, int count) {
 	clear_tree(tree);
 }
 
-int get_symbol_count(const int *occurrences) {
-	int sum = 0;
-	for (int i = 0; i < BYTE; ++i) { sum += occurrences[i]; }
-	return sum;
+bit_stream* create_stream(FILE *f) {
+	bit_stream *stream = (bit_stream*)malloc(sizeof(bit_stream));
+	stream->f = f;
+	stream->count = 0;
+
+	return stream;
 }
 
 int get_bit(bit_stream *stream) {
-	
+
 	if (stream->count == 0) {
 		stream->data = getc(stream->f);
 		stream->count = 8;
@@ -171,86 +178,8 @@ void print_remainder(bit_stream *stream) {
 	}
 }
 
-char** get_cipher(int *occurrencies) {
-	huffman_list *list = NULL;
-	huffman_list *new_obj;
-	char **cipher = create_cipher();
-	
-	for (int i = 0; i < BYTE; ++i) {
-		if (occurrencies[i] > 0) {
-			new_obj = create_list();
-			new_obj->val = occurrencies[i];
-			new_obj->symbols[0] = (char)i;
-			new_obj->len = 1;
-
-			add_list(&list, new_obj);
-		}
-	}
-
-	if (list == NULL) { return cipher; }
-	else if (list->next == NULL) {
-		push_char(&cipher[list->symbols[0]], '1');
-	}
-
-	while (list->next != NULL) {
-		new_obj = create_list();
-		new_obj->val = list->val + list->next->val;
-		combine_symbols(new_obj, list, list->next);
-
-		for (int i = 0; i < list->len; ++i) {
-			push_char(&cipher[list->symbols[i]], '0');
-		}
-		pop_list(&list);
-
-		for (int i = 0; i < list->len; ++i) {
-			push_char(&cipher[list->symbols[i]], '1');
-		}
-		pop_list(&list);
-
-		add_list(&list, new_obj);
-	}
-
-	clear_list(&list);
-	return cipher;
-}
-
-int* get_occurrences(FILE *in) {
-	int *p = new int[BYTE];
-	memset(p, 0, BYTE * sizeof(*p));
-
-	unsigned char c;
-	int count = 0;
-
-	while (true) {
-		c = fgetc(in);
-		if (feof(in)) break;
-
-		++p[c];
-		++count;
-	}
-	fseek(in, 0, SEEK_SET);
-
-	return p;
-}
-
-int* read_occurrences(FILE *in) {
-	int *p = new int[BYTE];
-
-	for (int i = 0; i < BYTE; ++i) {
-		fscanf(in, "%d", &p[i]);
-	}
-
-	return p;
-}
-
-void save_int_array(const int *a, int n) {
-	FILE *out = fopen(TEMP_FILE_NAME, "w");
-
-	for (int i = 0; i < n; ++i) {
-		fprintf(out, "%d\n", a[i]);
-	}
-
-	fclose(out);
+void free_stream(bit_stream *stream) {
+	free(stream);
 }
 
 binary_tree* create_branch() {
@@ -287,33 +216,6 @@ void clear_tree(binary_tree *tree) {
 	clear_tree(tree->left);
 	clear_tree(tree->right);
 	free(tree);
-}
-
-bit_stream* create_stream(FILE *f) {
-	bit_stream *stream = (bit_stream*)malloc(sizeof(bit_stream));
-	stream->f = f;
-	stream->count = 0;
-
-	return stream;
-}
-
-void free_stream(bit_stream *stream) {
-	free(stream);
-}
-
-char** create_cipher() {
-	char **cipher = (char**)malloc(sizeof(char*)* BYTE);
-
-	for (int i = 0; i < BYTE; ++i) {
-		cipher[i] = (char*)calloc((BYTE + 1), sizeof(char));
-	}
-
-	return cipher;
-}
-
-void free_cipher(char **cipher) {
-	for (int i = 0; i < BYTE; ++i) { free(cipher[i]); }
-	free(cipher);
 }
 
 huffman_list* create_list() {
@@ -355,22 +257,6 @@ void pop_list(huffman_list **list) {
 	*list = temp;
 }
 
-void clear_list(huffman_list **list) {
-	while (*list != NULL) {
-		pop_list(list);
-	}
-}
-
-void push_char(char **str, char c) {
-	char *res = (char*)malloc(sizeof(char) * (BYTE + 1));
-	res[0] = c;
-	res[1] = '\0';
-	strcat(res, *str);
-
-	free(*str);
-	*str = res;
-}
-
 void combine_symbols(huffman_list *dest, huffman_list *lhs, huffman_list *rhs) {
 	dest->len = 0;
 	for (int i = 0; i < lhs->len; ++i) {
@@ -381,4 +267,121 @@ void combine_symbols(huffman_list *dest, huffman_list *lhs, huffman_list *rhs) {
 		dest->symbols[dest->len] = rhs->symbols[i];
 		++dest->len;
 	}
+}
+
+void clear_list(huffman_list **list) {
+	while (*list != NULL) {
+		pop_list(list);
+	}
+}
+
+int get_symbol_count(const int *occurrences) {
+	int sum = 0;
+	for (int i = 0; i < BYTE; ++i) { sum += occurrences[i]; }
+	return sum;
+}
+
+int* get_occurrences(FILE *in) {
+	int *p = new int[BYTE];
+	memset(p, 0, BYTE * sizeof(*p));
+
+	unsigned char c;
+	int count = 0;
+
+	while (true) {
+		c = fgetc(in);
+		if (feof(in)) break;
+
+		++p[c];
+		++count;
+	}
+	fseek(in, 0, SEEK_SET);
+
+	return p;
+}
+
+int* read_occurrences(FILE *in) {
+	int *p = new int[BYTE];
+
+	for (int i = 0; i < BYTE; ++i) {
+		fscanf(in, "%d", &p[i]);
+	}
+
+	return p;
+}
+
+void save_int_array(const int *a, int n) {
+	FILE *out = fopen(TEMP_FILE_NAME, "w");
+
+	for (int i = 0; i < n; ++i) {
+		fprintf(out, "%d\n", a[i]);
+	}
+
+	fclose(out);
+}
+
+char** create_cipher() {
+	char **cipher = (char**)malloc(sizeof(char*) * BYTE);
+
+	for (int i = 0; i < BYTE; ++i) {
+		cipher[i] = (char*)malloc(sizeof(char) * (BYTE + 1));
+	}
+
+	return cipher;
+}
+
+char** get_cipher(int *occurrencies) {
+	huffman_list *list = NULL;
+	huffman_list *new_obj;
+	char **cipher = create_cipher();
+	
+	char **iterator = (char**)malloc(sizeof(char*) * BYTE);
+	for (int i = 0; i < BYTE; ++i) { iterator[i] = cipher[i]; }
+
+	for (int i = 0; i < BYTE; ++i) {
+		if (occurrencies[i] > 0) {
+			new_obj = create_list();
+			new_obj->val = occurrencies[i];
+			new_obj->symbols[0] = (char)i;
+			new_obj->len = 1;
+
+			add_list(&list, new_obj);
+		}
+	}
+
+	if (list == NULL) { return cipher; }
+	else if (list->next == NULL) {
+		*(iterator[list->symbols[0]]++) = '1';
+	}
+
+	while (list->next != NULL) {
+		new_obj = create_list();
+		new_obj->val = list->val + list->next->val;
+		combine_symbols(new_obj, list, list->next);
+
+		for (int i = 0; i < list->len; ++i) {
+			*(iterator[list->symbols[i]]++) = '0';
+		}
+		pop_list(&list);
+
+		for (int i = 0; i < list->len; ++i) {
+			*(iterator[list->symbols[i]]++) = '1';
+		}
+		pop_list(&list);
+
+		add_list(&list, new_obj);
+	}
+
+	for (int i = 0; i < BYTE; ++i) {
+		*iterator[i] = '\0';
+		strrev(cipher[i]);
+	}
+	free(iterator);
+	clear_list(&list);
+	return cipher;
+}
+
+void free_cipher(char **cipher) {
+	for (int i = 0; i < BYTE; ++i) { free(cipher[i]); }
+	free(cipher);
 }
