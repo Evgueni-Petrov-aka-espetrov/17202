@@ -7,5 +7,5 @@ struct binary_tree {
 };
 
 binary_tree* create_branch();
-binary_tree* build_tree(char **cipher, int symbol_count);
+binary_tree* build_huffman_tree(char **cipher);
 void clear_tree(binary_tree *tree);

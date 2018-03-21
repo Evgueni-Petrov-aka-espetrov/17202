@@ -7,11 +7,11 @@ binary_tree* create_branch() {
 	return tree;
 }
 
-binary_tree* build_tree(char **cipher, int symbol_count) {
+binary_tree* build_huffman_tree(char **cipher) {
 	binary_tree *tree = create_branch();
 	binary_tree *path;
 
-	for (int i = 0; i < symbol_count; ++i) {
+	for (int i = 0; i < 256; ++i) {
 		path = tree;
 		for (char *c = cipher[i]; *c != '\0'; ++c) {
 			if (*c == '0') {

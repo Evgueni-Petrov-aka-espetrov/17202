@@ -77,7 +77,7 @@ void encode(FILE *in, FILE *out, char **cipher) {
 
 void decode(FILE *in, FILE *out, char **cipher, int count) {
 	bit_stream *stream = create_stream(in);
-	binary_tree *tree = build_tree(cipher, BYTE);
+	binary_tree *tree = build_huffman_tree(cipher);
 	binary_tree *path;
 	int bit;
 
