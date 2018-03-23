@@ -101,8 +101,8 @@ int get_total_occurrences(const int *occurrences) {
 }
 
 int* get_occurrences(FILE *in) {
-	int *p = new int[BYTE];
-	memset(p, 0, BYTE * sizeof(*p));
+	int *ocr = (int*)malloc(sizeof(int) * BYTE);
+	memset(ocr, 0, BYTE * sizeof(*ocr));
 
 	unsigned char c;
 	int count = 0;
@@ -111,12 +111,12 @@ int* get_occurrences(FILE *in) {
 		c = fgetc(in);
 		if (feof(in)) break;
 
-		++p[c];
+		++ocr[c];
 		++count;
 	}
 	fseek(in, 0, SEEK_SET);
 
-	return p;
+	return ocr;
 }
 
 void save_occurrences(const int *ocr) {
@@ -131,7 +131,7 @@ void save_occurrences(const int *ocr) {
 
 int* read_occurrences() {
 	FILE *in = fopen(TEMP_FILE_NAME, "r");
-	int *ocr = new int[BYTE];
+	int *ocr = (int*)malloc(sizeof(int) * BYTE);
 
 	for (int i = 0; i < BYTE; ++i) {
 		fscanf(in, "%d", &ocr[i]);
