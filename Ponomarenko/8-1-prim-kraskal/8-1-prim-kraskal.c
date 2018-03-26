@@ -1,28 +1,12 @@
 #include <stdio.h>
 #include <limits.h>
+#include <stdlib.h>
 
 typedef struct TEdge {
 	int v1;
 	int v2;
 	int length;
 } Edge;
-
-int min(int a, int b) {
-	if (a < b) {
-		return a;
-	}
-	else {
-		return b;
-	}
-}
-int max(int a, int b) {
-	if (a > b) {
-		return a;
-	}
-	else {
-		return b;
-	}
-}
 
 
 void swap(Edge* a, Edge* b) {
