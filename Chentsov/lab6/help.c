@@ -5,81 +5,39 @@ struct tree{
     struct tree *left;
     struct tree *right;
 };
+void height_update(struct tree* q){
+    if(q->left){
+        if(q->right){
+            if(q->left->height < q->right->height)
+                q->height = q->right->height + 1;
+            else
+                q->height = q->left->height + 1;
+        }
+        else
+            q->height = q->left->height + 1;
+    }
+    else{
+        if(q->right)
+            q->height = q->right->height + 1;
+        else
+            q->height = 1;
+    }
+}
 void left_turn(struct tree **h){
     struct tree *g = *h;
     *h = (*h)->left;
     g->left = (*h)->right;
     (*h)->right = g;
-    if((*h)->right->left){
-        if((*h)->right->right){
-            if((*h)->right->left->height < (*h)->right->right->height)
-                (*h)->right->height = (*h)->right->right->height + 1;
-            else
-                (*h)->right->height = (*h)->right->left->height + 1;
-        }
-        else
-            (*h)->right->height = (*h)->right->left->height + 1;
-    }
-    else{
-        if((*h)->right->right)
-            (*h)->right->height = (*h)->right->right->height + 1;
-        else
-            (*h)->right->height = 1;
-    }
-    if((*h)->left){
-        if((*h)->right){
-            if((*h)->left->height < (*h)->right->height)
-                (*h)->height = (*h)->right->height + 1;
-            else
-                (*h)->height = (*h)->left->height + 1;
-        }
-        else
-            (*h)->height = (*h)->left->height + 1;
-    }
-    else{
-        if((*h)->right)
-            (*h)->height = (*h)->right->height + 1;
-        else
-            (*h)->height = 1;
-    }
+    height_update((*h)->right);
+    height_update(*h);
 }
 void right_turn(struct tree **m){
     struct tree *l = *m;
     *m = (*m)->right;
     l->right = (*m)->left;
     (*m)->left = l;
-    if((*m)->left->left){
-        if((*m)->left->right){
-            if((*m)->left->left->height < (*m)->left->right->height)
-                (*m)->left->height = (*m)->left->right->height + 1;
-            else
-                (*m)->left->height = (*m)->left->left->height + 1;
-        }
-        else
-            (*m)->left->height = (*m)->left->left->height + 1;
-    }
-    else{
-        if((*m)->left->right)
-            (*m)->left->height = (*m)->left->right->height + 1;
-        else
-            (*m)->left->height = 1;
-    }
-    if((*m)->left){
-        if((*m)->right){
-            if((*m)->left->height < (*m)->right->height)
-                (*m)->height = (*m)->right->height + 1;
-            else
-                (*m)->height = (*m)->left->height + 1;
-        }
-        else
-            (*m)->height = (*m)->left->height + 1;
-    }
-    else{
-        if((*m)->right)
-            (*m)->height = (*m)->right->height + 1;
-        else
-            (*m)->height = 1;
-    }
+    height_update((*m)->left);
+    height_update(*m);
 }
 int inserting(int c,struct tree **p){
     struct tree *d = *p;
@@ -121,7 +79,6 @@ int inserting(int c,struct tree **p){
             f = d->left->height;
         else
             f = 0;
-        //printf("%i %i\n",e,d->left);
         if((e == f + 1))
             d->height = e + 1;
         if(e == f + 2){
