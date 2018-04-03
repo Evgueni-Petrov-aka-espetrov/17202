@@ -130,7 +130,7 @@ stack* readGraph(FILE* in, unsigned int numVer, unsigned int numEd) {
 	graphContainer.lastInStack = NULL;
 
 	unsigned int i = 0;
-	while (true) {
+	while (1) {
 		unsigned int start, end;
 		long long length;
 
