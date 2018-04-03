@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 void swap(unsigned int *a, unsigned int *b) {
 	unsigned int buffer = *a;
@@ -23,17 +24,81 @@ triple tripleConstr(unsigned int start, unsigned int end, unsigned int length) {
 	return tr;
 }
 
-typedef struct stack3 {
+typedef struct stack {
 	triple val;
-	struct stack3* prev;
-}stack3;
+	struct stack* prev;
+}stack;
 
-typedef struct stack3Container {
-	stack3* firstInStack;
-	stack3* lastInStack;
-}stack3Container;
+typedef struct stackContainer {
+	stack* firstInStack;
+	stack* lastInStack;
+}stackContainer;
+
+typedef struct memPool{
+	uint8_t *mem;
+	uint32_t totalSize;
+	uint32_t offset;
+}memPool;
+
+memPool memPoolConstructor(uint16_t sizeOfStruct, uint32_t lengthOfPool) {
+	memPool pool;
+	pool.mem = (uint8_t*)malloc(sizeOfStruct*lengthOfPool);
+	pool.offset = 0;
+	pool.totalSize = sizeOfStruct *lengthOfPool;
+	return pool;
+}
+
+void* getMem(memPool* buf, uint32_t size) {
+	if (buf == NULL || size == NULL)
+		return NULL;
+	uint32_t newOffset = buf->offset + size;
+	if (newOffset <= buf->totalSize) {
+		void* ptr = buf->mem + buf->offset;
+		buf->offset = newOffset;
+		return ptr;
+	}
+	return NULL;
+}
+
+stackContainer stackContainerHolder(triple t, stackContainer graphContainer, memPool* memPool) {
+	stack* st = (stack*)getMem(memPool, sizeof(stack));
+	st->val = t;
+	st->prev = NULL;
+	if (graphContainer.firstInStack == NULL) {
+		st->prev = graphContainer.firstInStack;
+		graphContainer.firstInStack = st;
+		graphContainer.lastInStack = st;
+		return graphContainer;
+	}
+	if (t.length >= graphContainer.lastInStack->val.length) {
+		graphContainer.lastInStack->prev = st;
+		graphContainer.lastInStack = st;
+		return graphContainer;
+	}
+	if (t.length <= graphContainer.firstInStack->val.length) {
+		st->prev = graphContainer.firstInStack;
+		graphContainer.firstInStack = st;
+		return graphContainer;
+	}
+	stack* tmp = graphContainer.firstInStack;
+	while (tmp->prev != NULL) {
+		if (t.length <= tmp->prev->val.length) {
+			st->prev = tmp->prev;
+			tmp->prev = st;
+			return graphContainer;
+		}
+		tmp = tmp->prev;
+	}
+}
 
 int isCorrectNumVerNumEd(const unsigned int numVer, const unsigned int numEd) {
+	if (numVer == 1)
+		return 0;
+	if (numEd == 0)
+	{
+		printf("no spanning tree");
+		return 0;
+	}
 	if (numVer < 0 || numVer > 5000) {
 		printf("bad number of vertices");
 		return 0;
@@ -57,55 +122,20 @@ int isCorrectVerEdLength(unsigned int start, unsigned int end, long long length,
 	return 1;
 }
 
-stack3Container stack3ContainerHolder(triple t, stack3Container graphContainer) {
-	stack3* st = (stack3*)malloc(sizeof(stack3));
-	st->val = t;
-	st->prev = NULL;
-	if (graphContainer.firstInStack == NULL) {
-		st->prev = graphContainer.firstInStack;
-		graphContainer.firstInStack = st;
-		graphContainer.lastInStack = st;
-		return graphContainer;
-	}
-	if (t.length >= graphContainer.lastInStack->val.length) {
-		graphContainer.lastInStack->prev = st;
-		graphContainer.lastInStack = st;
-		return graphContainer;
-	}
-	if (t.length <= graphContainer.firstInStack->val.length) {
-		st->prev = graphContainer.firstInStack;
-		graphContainer.firstInStack = st;
-		return graphContainer;
-	}
-	stack3* tmp = graphContainer.firstInStack;
-	while (tmp->prev != NULL) {
-		if (t.length <= tmp->prev->val.length) {
-			st->prev = tmp->prev;
-			tmp->prev = st;
-			return graphContainer;
-		}
-		tmp = tmp->prev;
-	}
-}
+stack* readGraph(FILE* in, unsigned int numVer, unsigned int numEd) {
+	memPool pool = memPoolConstructor(sizeof(stack), numEd);
 
-stack3* readGraph(FILE* in, unsigned int numVer, unsigned int numEd) {
-	stack3* graph = NULL;
-	stack3Container graphContainer;
-	graphContainer.firstInStack = graph;
-	graphContainer.lastInStack = graph;
+	stackContainer graphContainer;
+	graphContainer.firstInStack = NULL;
+	graphContainer.lastInStack = NULL;
+
 	unsigned int i = 0;
 	while (true) {
 		unsigned int start, end;
 		long long length;
 
 		fscanf(in, "%d %d %lld", &start, &end, &length);
-		if (feof(in) && i < numEd) {
-			printf("bad number of lines");
-			return NULL;
-		}
-		if (!isCorrectVerEdLength(start, end, length, numVer)) return NULL;
-		++i;
-		graphContainer = stack3ContainerHolder(tripleConstr(start - 1, end - 1, (unsigned int)length), graphContainer);
+
 		if (feof(in)) {
 			if (i < numEd)
 			{
@@ -114,35 +144,38 @@ stack3* readGraph(FILE* in, unsigned int numVer, unsigned int numEd) {
 			}
 			break;
 		}
+		if (!isCorrectVerEdLength(start, end, length, numVer)) return NULL;
+		++i;
+		graphContainer = stackContainerHolder(tripleConstr(start - 1, end - 1, (unsigned int)length), graphContainer, &pool);
+		stack* tmp = graphContainer.firstInStack;
 	}
-	graph = graphContainer.firstInStack;
-	return graph;
-	
+	return graphContainer.firstInStack;
+
 }
 
-triple** kruskal(stack3* graph, unsigned int numVer, unsigned int numEd) {
-	triple** result = (triple**)malloc(sizeof(triple*)*numVer*2);
-	for (unsigned int i = 0; i < numVer * 2; ++i) {
+triple** kruskal(stack* graph, unsigned int numVer, unsigned int numEd) {
+	triple** result = (triple**)malloc(sizeof(triple*)*numVer);
+	for (unsigned int i = 0; i < numVer; ++i) {
 		result[i] = NULL;
 	}
 
-	unsigned int* tree_id = (unsigned int*)malloc(sizeof(unsigned int)*numVer);
+	unsigned int* treeNum = (unsigned int*)malloc(sizeof(unsigned int)*numVer);
 	for (unsigned int i = 0; i < numVer; ++i)
-		tree_id[i] = i;
+		treeNum[i] = i;
 	int num = 0;
 	while (graph != NULL) {
-		if (tree_id[graph->val.start] != tree_id[graph->val.end]) {
-			for (int i = 0; i < numVer*2; ++i) {
+		if (treeNum[graph->val.start] != treeNum[graph->val.end]) {
+			for (int i = 0; i < numVer; ++i) {
 				if (result[i] == NULL) {
 					result[i] = &(graph->val);
 					break;
 				}
 			}
 			num++;
-			unsigned int old_id = tree_id[graph->val.end], new_id = tree_id[graph->val.start];
+			unsigned int oldNum = treeNum[graph->val.end], newNum = treeNum[graph->val.start];
 			for (unsigned int i = 0; i < numVer; ++i) {
-				if (tree_id[i] == old_id)
-					tree_id[i] = new_id;
+				if (treeNum[i] == oldNum)
+					treeNum[i] = newNum;
 			}
 		}
 		graph = graph->prev;
@@ -150,8 +183,19 @@ triple** kruskal(stack3* graph, unsigned int numVer, unsigned int numEd) {
 	if (num < numVer - 1) {
 		printf("no spanning tree");
 		return NULL;
-	} 
+	}
 	return result;
+}
+
+void printKruskalResult(FILE* out, triple** kruskalResult, unsigned int numVer) {
+	if (kruskalResult != NULL)
+		for (unsigned int i = 0; i < numVer; ++i) {
+			if ((kruskalResult[i]) == NULL)
+				break;
+			if ((*(kruskalResult[i])).start >(*(kruskalResult[i])).end)
+				swap(&((*(kruskalResult[i])).start), &((*(kruskalResult[i])).end));
+			fprintf(out, "%d %d\n", (*(kruskalResult[i])).start + 1, (*(kruskalResult[i])).end + 1);
+		}
 }
 
 int main() {
@@ -159,32 +203,20 @@ int main() {
 	unsigned int numVer, numEd;
 
 	fscanf(in, "%d %d" , &numVer, &numEd);
-	if (numVer == 1)
-		return 0;
-	if (numEd == 0)
-	{
-		printf("no spanning tree");
-		return 0;
-	}
+
 	if (feof(in)) {
 		printf("bad number of lines");
 		return 0;
 	}
 	if (!isCorrectNumVerNumEd(numVer, numEd)) return 0;
 
-	stack3* graph = readGraph(in, numVer, numEd);
+	stack* graph = readGraph(in, numVer, numEd);
 	if (graph == NULL)
-	{
 		return 0;
-	}
-	triple** kruskalRes = kruskal(graph, numVer, numEd);
+	fclose(in);
+	triple** kruskalResult = kruskal(graph, numVer, numEd);
+
 	FILE* out = fopen("out.txt", "w");
-	if (kruskalRes != NULL)
-	for (unsigned int i = 0; i < numVer*2; ++i) {
-		if ((kruskalRes[i]) == NULL)
-			break;
-		if ((*(kruskalRes[i])).start > (*(kruskalRes[i])).end) swap(&((*(kruskalRes[i])).start), &((*(kruskalRes[i])).end));
-		fprintf(out, "%d %d\n", (*(kruskalRes[i])).start + 1, (*(kruskalRes[i])).end + 1);
-	}
+	printKruskalResult(out, kruskalResult, numVer);
 	return 0;
 }
