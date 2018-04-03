@@ -8,7 +8,7 @@ typedef struct node {
 	struct node* right;
 }node;
 
-node* node_constructor(int key) {
+node* nodeConstructor(int key) {
 	node* p = (node*)malloc(sizeof(node));
 	p->height = 1;
 	p->key = key;
@@ -17,22 +17,16 @@ node* node_constructor(int key) {
 	return p;
 }
 
-void node_destructor(node** p) {
-	if ((*p)->left == NULL && (*p)->right == NULL) {
-		free(*p);
-		return;
+void nodeDestructor(node** p) {
+	if ((*p)->left) {
+		nodeDestructor(&((*p)->left));
 	}
-	if ((*p)->left == NULL) {
-		node_destructor(&((*p)->right));
-		return;
+	if ((*p)->right) {
+		nodeDestructor(&((*p)->right));
 	}
-	if ((*p)->right == NULL) {
-		node_destructor(&((*p)->left));
-		return;
-	}
-	node_destructor(&((*p)->right));
-	node_destructor(&((*p)->left));
+	free(*p);
 }
+
 int height(node* p) {
 	if (p != NULL) {
 		return p->height;
@@ -91,7 +85,7 @@ node* balanceNode(node* p) {
 }
 node* insertNode(node* p, int key) {
 	if (p == NULL) {
-		return node_constructor(key);
+		return nodeConstructor(key);
 	}
 	if (key < p->key) {
 		p->left = insertNode(p->left, key);
@@ -124,6 +118,6 @@ int main() {
 		return 0;
 	}
 	printf("%d", height(p));
-	node_destructor(&p);
+	nodeDestructor(&p);
 	return 0;
 }
