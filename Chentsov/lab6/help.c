@@ -5,111 +5,120 @@ struct tree{
     struct tree *left;
     struct tree *right;
 };
-void height_update(struct tree* q){
-    if(q->left){
-        if(q->right){
-            if(q->left->height < q->right->height)
-                q->height = q->right->height + 1;
+void height_update(struct tree* tree){
+    if(tree->left){
+        if(tree->right){
+            if(tree->left->height < tree->right->height)
+                tree->height = tree->right->height + 1;
             else
-                q->height = q->left->height + 1;
+                tree->height = tree->left->height + 1;
         }
         else
-            q->height = q->left->height + 1;
+            tree->height = tree->left->height + 1;
     }
     else{
-        if(q->right)
-            q->height = q->right->height + 1;
+        if(tree->right)
+            tree->height = tree->right->height + 1;
         else
-            q->height = 1;
+            tree->height = 1;
     }
 }
-void left_turn(struct tree **h){
-    struct tree *g = *h;
-    *h = (*h)->left;
-    g->left = (*h)->right;
-    (*h)->right = g;
-    height_update((*h)->right);
-    height_update(*h);
+void left_turn(struct tree **tree){
+    struct tree *old_base = *tree;
+    *tree = (*tree)->left;
+    old_base->left = (*tree)->right;
+    (*tree)->right = old_base;
+    height_update((*tree)->right);
+    height_update(*tree);
 }
-void right_turn(struct tree **m){
-    struct tree *l = *m;
-    *m = (*m)->right;
-    l->right = (*m)->left;
-    (*m)->left = l;
-    height_update((*m)->left);
-    height_update(*m);
+void right_turn(struct tree **tree){
+    struct tree *old_base = *tree;
+    *tree = (*tree)->right;
+    old_base->right = (*tree)->left;
+    (*tree)->left = old_base;
+    height_update((*tree)->left);
+    height_update(*tree);
 }
-int inserting(int c,struct tree **p){
-    struct tree *d = *p;
-    if(d == NULL){
-        *p = malloc(sizeof(struct tree));
-        d = *p;
-        d->data = c;
-        d->height = 1;
-        d->left = NULL;
-        d->right = NULL;
+int inserting(int data,struct tree **pointer){
+    struct tree *tree = *pointer;
+    if(tree == NULL){
+        *pointer = malloc(sizeof(struct tree));
+        tree = *pointer;
+        tree->data = data;
+        tree->height = 1;
+        tree->left = NULL;
+        tree->right = NULL;
         return 1;
     }
-    int e,f;
-    if(c < d->data){
-        e = inserting(c,&(d->left));
-        if(d->right)
-            f = d->right->height;
+    int height_of_changed_subtree,height_of_other_subtree;
+    if(data < tree->data){
+        height_of_changed_subtree = inserting(data,&(tree->left));
+        if(tree->right)
+            height_of_other_subtree = tree->right->height;
         else
-            f = 0;
-        if((e == f + 1))
-            d->height = e + 1;
-        if(e == f + 2){
-            if(d->left->left)
-                e = d->left->left->height;
+            height_of_other_subtree = 0;
+        if((height_of_changed_subtree == height_of_other_subtree + 1))
+            tree->height = height_of_changed_subtree + 1;
+        if(height_of_changed_subtree == height_of_other_subtree + 2){
+            if(tree->left->left)
+                height_of_changed_subtree = tree->left->left->height;
             else
-                e = 0;
-            if(d->left->right)
-                f = d->left->right->height;
+                height_of_changed_subtree = 0;
+            if(tree->left->right)
+                height_of_other_subtree = tree->left->right->height;
             else
-                f = 0;
-            if(e <= f)
-                right_turn(&(d->left));
-            left_turn(p);
+                height_of_other_subtree = 0;
+            if(height_of_changed_subtree <= height_of_other_subtree)
+                right_turn(&(tree->left));
+            left_turn(pointer);
         }
     }
     else{
-        e = inserting(c,&(d->right));
-        if(d->left)
-            f = d->left->height;
+        height_of_changed_subtree = inserting(data,&(tree->right));
+        if(tree->left)
+            height_of_other_subtree = tree->left->height;
         else
-            f = 0;
-        if((e == f + 1))
-            d->height = e + 1;
-        if(e == f + 2){
-            if(d->right->right)
-                e = d->right->right->height;
+            height_of_other_subtree = 0;
+        if((height_of_changed_subtree == height_of_other_subtree + 1))
+            tree->height = height_of_changed_subtree + 1;
+        if(height_of_changed_subtree == height_of_other_subtree + 2){
+            if(tree->right->right)
+                height_of_changed_subtree = tree->right->right->height;
             else
-                e = 0;
-            if(d->right->left)
-                f = d->right->left->height;
+                height_of_changed_subtree = 0;
+            if(tree->right->left)
+                height_of_other_subtree = tree->right->left->height;
             else
-                f = 0;
-            if(e <= f)
-                left_turn(&(d->right));
-            right_turn(p);
+                height_of_other_subtree = 0;
+            if(height_of_changed_subtree <= height_of_other_subtree)
+                left_turn(&(tree->right));
+            right_turn(pointer);
         }
     }
-    return d->height;
+    return tree->height;
+}
+void tree_dtor(struct tree *tree){
+    if(tree == NULL)
+        return;
+    if(tree->left)
+        tree_dtor(tree->left);
+    if(tree->right)
+        tree_dtor(tree->right);
+    free(tree);
 }
 int main(){
     int N;
     scanf("%i",&N);
-    int i,a;
-    struct tree *b = NULL;
+    int i,data;
+    struct tree *tree = NULL;
     for(i = 0;i < N;++ i){
-        scanf("%i",&a);
-        inserting(a,&b);
+        scanf("%i",&data);
+        inserting(data,&tree);
     }
-    if(b){
-        printf("%i",b->height);
-    }
+    if(tree)
+        printf("%i",tree->height);
     else
         printf("0");
+    tree_dtor(tree);
     return 0;
 }
