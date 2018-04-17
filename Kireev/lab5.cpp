@@ -219,6 +219,23 @@ stack* buildCodeTable(memPool* pool, binTree* tree, stack* prev, uint8_t code, u
 	}
 }
 
+void printBytesUsingBuffer(FILE* out, uint8_t* buf, uint8_t* counter, uint8_t numOfBit, uint32_t code) {
+	for (uint8_t i = 0; i <= numOfBit; ++i) {
+		*buf <<= 1;
+		uint16_t pos = (1 << (numOfBit));
+		*buf = *buf | (((code)& pos) >> (numOfBit));
+		printf("%d", (((code)& pos) >> (numOfBit)));
+		code <<= 1;
+		*counter += 1;
+		if (*counter == 8) {
+			fprintf(out, "%c", *buf);
+			printf(" %d ", *buf);
+			*buf = 0;
+			*counter = 0;
+		}
+	}
+}
+
 void printCompressedText(FILE* in, FILE* out, stack* codeTable, uint32_t numOfSymbols, uint8_t maxShift) {
 	in = fopen("in.txt", "rb");
 	uint8_t buf = 0;
@@ -228,38 +245,14 @@ void printCompressedText(FILE* in, FILE* out, stack* codeTable, uint32_t numOfSy
 		fscanf(in, "%c", &tmp);
 		stack* st = codeTable;
 		while (st != NULL) {
-			if (st->val.symbol == tmp) {// в общем, тут исходный текст должен заколдоваться и превратиться в кодированный текст
-				uint32_t code = st->val.code;
-				for (int i = 0; i < maxShift - st->val.shift; ++i) {
-					if (counter == 8) {
-						fprintf(out, "%c", buf);
-						printf(" %d ", buf);
-						buf = 0;
-						counter = 0;
-						//continue;
-					}
-					/*uint8_t t = buf;
-					for (int i = 0; i < 8; ++i) {
-						if (t & 1 == 1) {
-							printf("1");
-						}
-						else {
-							printf("0");
-						}
-						t >>= 1;
-					}*/
-					buf = buf | ((code) & 1);
-					printf("%d", code & 1);
-					code >>= 1;
-					buf <<= 1;
-					counter += 1;
-					
-				}
+			if (st->val.symbol == tmp) {
+				printBytesUsingBuffer(out, &buf, &counter, maxShift - st->val.shift - 1, st->val.code);				
 				break;
 			}
 			st = st->prev;
 		}
 	}
+	fprintf(out, "%c", buf<<(8-counter));
 }
 
 int main() {
@@ -275,18 +268,18 @@ int main() {
 
 	FILE* out = fopen("out.txt", "wb");
 	printTree(out, tree);
-	fprintf(out, "\n%d\n", numOfSymbols);
+	fprintf(out, " \n%d\n", numOfSymbols);
 
 	memPool pool = memPoolConstructor(sizeof(stack), numOfDifferentSymbols);
 	int maxShift = 32;
 	stack* codeTable = buildCodeTable(&pool, tree, NULL, 0, maxShift);
 	free(tree);
 
-	//stack* tmp = codeTable;
-	//while (tmp != NULL) {
-	//	printf("%c : %d << %d\n", tmp->val.symbol, tmp->val.code, tmp->val.shift);
-	//	tmp = tmp->prev;
-	//}
+	/*stack* tmp = codeTable;
+	while (tmp != NULL) {
+		printf("%c : %d << %d\n", tmp->val.symbol, tmp->val.code, tmp->val.shift);
+		tmp = tmp->prev;
+	}*/
 	printCompressedText(in, out, codeTable, numOfSymbols, maxShift);
 
 	fclose(out);
