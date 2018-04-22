@@ -28,7 +28,10 @@ l_num* insert(l_num* head, unsigned short v_ind, l_num* N) {
 }
 
 int read(vertex** V, int* len, l_num* E) {
-	scanf_s("%d", len);
+	if (scanf_s("%d", len) < 1) {
+		puts("bad number of lines");
+		return 3;
+	}
 	if (*len < 0 || *len > 1000) {
 		puts("bad number of vertices");
 		return 1;
