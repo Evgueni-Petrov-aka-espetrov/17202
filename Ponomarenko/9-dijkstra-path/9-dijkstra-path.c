@@ -192,7 +192,7 @@ int main() {
 	int NumVer;
 	int NumEd;
 	int PathBeg, PathEnd;
-	if (scanf("%d", &NumVer) + scanf("%d%d", &PathBeg, &PathEnd) + scanf("%d", &NumEd) != 4) {
+	if (scanf("%d%d%d%d", &NumVer, &PathBeg, &PathEnd, &NumEd) != 4) {
 		printf("bad number of lines");
 		exit(0);
 	}
