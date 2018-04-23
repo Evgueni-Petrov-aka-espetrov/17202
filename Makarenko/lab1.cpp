@@ -139,7 +139,9 @@ void RabinKarp(FILE* input, FILE* output) {
 		++counter;
 		}
 	Printing(result, pointer, output);
-	
+	free(str);
+	free(result);
+	free(sample);
 }
 int main() {
 	FILE* input = fopen("in.txt", "r");
