@@ -140,12 +140,12 @@ void printTreeDebug(binTree* tree) {
 	if (tree != NULL) {
 		if (tree->left == NULL && tree->right == NULL) {
 			//printf("%c : %d ", tree->val.symbol, tree->val.number);
-			printf("%c ", tree->val.symbol);
+			fprintf(stderr, "%c ", tree->val.symbol), fflush(0);
 		}
 		else {
-			printf("left ");
+			fprintf(stderr, "left "), fflush(0);
 			printTreeDebug(tree->left);
-			printf("right ");
+			fprintf(stderr, "right "), fflush(0);
 			printTreeDebug(tree->right);
 		}
 	}
@@ -221,16 +221,18 @@ stack* buildCodeTable(memPool* pool, binTree* tree, stack* prev, uint8_t code, u
 }
 
 void printBytesUsingBuffer(FILE* out, uint8_t* buf, uint8_t* counter, uint8_t numOfBit, uint32_t code) {
+	if (numOfBit == 255) {
+		fprintf(out, "%c", 0);
+		return;
+	}
 	for (uint8_t i = 0; i <= numOfBit; ++i) {
 		*buf <<= 1;
 		uint16_t pos = (1 << (numOfBit));
-		*buf = *buf | (((code)& pos) >> (numOfBit));
-		//printf("%d", (((code)& pos) >> (numOfBit)));
+		*buf = *buf | (((code) & pos) >> (numOfBit));
 		code <<= 1;
 		*counter += 1;
 		if (*counter == 8) {
 			fprintf(out, "%c", *buf);
-			//printf(" %d ", *buf);
 			*buf = 0;
 			*counter = 0;
 		}
@@ -243,6 +245,7 @@ void printCompressedText(FILE* in, FILE* out, stack* codeTable, uint32_t numOfSy
 	for (uint32_t i = 0; i < numOfSymbols; ++i) {
 		uint8_t tmp;
 		fscanf(in, "%c", &tmp);
+
 		stack* st = codeTable;
 		while (st != NULL) {
 			if (st->val.symbol == tmp) {
@@ -256,29 +259,23 @@ void printCompressedText(FILE* in, FILE* out, stack* codeTable, uint32_t numOfSy
 }
 
 void compressText(FILE* in, FILE* out) {
-	fscanf(in, "%c%c");
-
-	//while (1)
-	//{
-	//	uint8_t tmp = getc(in);
-	//	if (feof(in)) break;
-	//	printf("%c", tmp);
-	//}
-
 	uint8_t numOfDifferentSymbols = 0;
 	uint32_t numOfSymbols = 0;
+	
 	freqPair* freqTable = buildfreqTable(in, &numOfDifferentSymbols, &numOfSymbols);
-	if (freqTable == NULL) return; 
-
-	/*for (int i = 0; i < numOfDifferentSymbols; ++i) {
-		printf("%c : %d\n", freqTable->symbol, freqTable->number);
-	}*/
+	
+	if (freqTable == NULL) {
+		fprintf(out, "01\n\n1\n");
+		return;
+	}
+	
 	binTree* tree = buildTree(freqTable, numOfDifferentSymbols);
-	//printTreeDebug(tree);
+
 	printTree(out, tree);
 	fprintf(out, " \n%d\n", numOfSymbols);
 
 	memPool pool = memPoolConstructor(sizeof(stack), numOfDifferentSymbols);
+	
 	int maxShift = 32;
 	stack* codeTable = NULL;
 	codeTable = buildCodeTable(&pool, tree, NULL, 0, maxShift);
@@ -291,6 +288,7 @@ void compressText(FILE* in, FILE* out) {
 
 	fseek(in, 3, SEEK_SET);
 	printCompressedText(in, out, codeTable, numOfSymbols, maxShift);
+	
 }
 
 void readNode(FILE* in, binTree* prev) {
@@ -316,7 +314,7 @@ binTree* readTree(FILE* in) {
 	return tree;
 }
 
-void printDepressedText(FILE* in, FILE* out, binTree* tree, uint32_t numOfSymbols){
+void printDepressedText(FILE* in, FILE* out, binTree* tree, int32_t numOfSymbols){
 	uint8_t counter = 0;
 	uint8_t buf = getc(in);
 	for (int i = 0; i < numOfSymbols; ++i) {
@@ -327,10 +325,12 @@ void printDepressedText(FILE* in, FILE* out, binTree* tree, uint32_t numOfSymbol
 				counter = 0;
 			}
 			if ((buf & 128) == 0) {
-				tmp = tmp->left;
+				if(tmp->left != NULL)
+					tmp = tmp->left;
 			}
 			else {
-				tmp = tmp->right;
+				if (tmp->right != NULL)
+					tmp = tmp->right;
 			}
 			buf <<= 1;
 			counter++;
@@ -340,27 +340,26 @@ void printDepressedText(FILE* in, FILE* out, binTree* tree, uint32_t numOfSymbol
 }
 
 void depressText(FILE* in, FILE* out) {
-	fscanf(in, "%c");
 	binTree* tree = readTree(in);
-
-	uint32_t numOfSymbols;
+	
+	int32_t numOfSymbols;
 	fscanf(in, "%d", &numOfSymbols);
-	fscanf(in, "%c");
-	
+	getc(in);
 	printDepressedText(in, out, tree, numOfSymbols);
-	
 }
 
 int main() {
 	FILE* in = fopen("in.txt", "rb");
 	FILE* out = fopen("out.txt", "wb");
-	
 	uint8_t whatToDo;
 	fscanf(in, "%c", &whatToDo);
+	getc(in);
+	getc(in);
 	if (whatToDo == 'c')
 		compressText(in, out);
 	else
 		depressText(in, out);
+
 	fclose(in);
 	fclose(out);
 	//system("pause");
