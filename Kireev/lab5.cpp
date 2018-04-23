@@ -139,7 +139,8 @@ freqPair* buildfreqTable(FILE* in, uint8_t* numOfDifferentSymbols, uint32_t* num
 void printTreeDebug(binTree* tree) {
 	if (tree != NULL) {
 		if (tree->left == NULL && tree->right == NULL) {
-			printf("%c : %d ", tree->val.symbol, tree->val.number);
+			//printf("%c : %d ", tree->val.symbol, tree->val.number);
+			printf("%c ", tree->val.symbol);
 		}
 		else {
 			printf("left ");
@@ -224,12 +225,12 @@ void printBytesUsingBuffer(FILE* out, uint8_t* buf, uint8_t* counter, uint8_t nu
 		*buf <<= 1;
 		uint16_t pos = (1 << (numOfBit));
 		*buf = *buf | (((code)& pos) >> (numOfBit));
-		printf("%d", (((code)& pos) >> (numOfBit)));
+		//printf("%d", (((code)& pos) >> (numOfBit)));
 		code <<= 1;
 		*counter += 1;
 		if (*counter == 8) {
 			fprintf(out, "%c", *buf);
-			printf(" %d ", *buf);
+			//printf(" %d ", *buf);
 			*buf = 0;
 			*counter = 0;
 		}
@@ -237,7 +238,6 @@ void printBytesUsingBuffer(FILE* out, uint8_t* buf, uint8_t* counter, uint8_t nu
 }
 
 void printCompressedText(FILE* in, FILE* out, stack* codeTable, uint32_t numOfSymbols, uint8_t maxShift) {
-	in = fopen("in.txt", "rb");
 	uint8_t buf = 0;
 	uint8_t counter = 0;
 	for (uint32_t i = 0; i < numOfSymbols; ++i) {
@@ -255,34 +255,114 @@ void printCompressedText(FILE* in, FILE* out, stack* codeTable, uint32_t numOfSy
 	fprintf(out, "%c", buf<<(8-counter));
 }
 
-int main() {
-	FILE* in = fopen("in.txt", "rb");
+void compressText(FILE* in, FILE* out) {
+	fscanf(in, "%c%c");
+
+	//while (1)
+	//{
+	//	uint8_t tmp = getc(in);
+	//	if (feof(in)) break;
+	//	printf("%c", tmp);
+	//}
+
 	uint8_t numOfDifferentSymbols = 0;
 	uint32_t numOfSymbols = 0;
 	freqPair* freqTable = buildfreqTable(in, &numOfDifferentSymbols, &numOfSymbols);
-	fclose(in);
-	if (freqTable == NULL) return NULL;
+	if (freqTable == NULL) return; 
 
+	/*for (int i = 0; i < numOfDifferentSymbols; ++i) {
+		printf("%c : %d\n", freqTable->symbol, freqTable->number);
+	}*/
 	binTree* tree = buildTree(freqTable, numOfDifferentSymbols);
-	free(freqTable);
-
-	FILE* out = fopen("out.txt", "wb");
+	//printTreeDebug(tree);
 	printTree(out, tree);
 	fprintf(out, " \n%d\n", numOfSymbols);
 
 	memPool pool = memPoolConstructor(sizeof(stack), numOfDifferentSymbols);
 	int maxShift = 32;
-	stack* codeTable = buildCodeTable(&pool, tree, NULL, 0, maxShift);
-	free(tree);
+	stack* codeTable = NULL;
+	codeTable = buildCodeTable(&pool, tree, NULL, 0, maxShift);
 
 	/*stack* tmp = codeTable;
 	while (tmp != NULL) {
-		printf("%c : %d << %d\n", tmp->val.symbol, tmp->val.code, tmp->val.shift);
-		tmp = tmp->prev;
+	printf("%c : %d << %d\n", tmp->val.symbol, tmp->val.code, tmp->val.shift);
+	tmp = tmp->prev;
 	}*/
-	printCompressedText(in, out, codeTable, numOfSymbols, maxShift);
 
+	fseek(in, 3, SEEK_SET);
+	printCompressedText(in, out, codeTable, numOfSymbols, maxShift);
+}
+
+void readNode(FILE* in, binTree* prev) {
+	uint8_t tmp = getc(in);
+	if (tmp == '0') {
+		prev->left = (binTree*)malloc(sizeof(binTree));
+		readNode(in, prev->left);
+	}
+	if (tmp == '1') {
+		tmp = getc(in);
+		prev->val.symbol = tmp;
+		prev->left = NULL;
+		prev->right = NULL;
+		return;
+	}
+	prev->right = (binTree*)malloc(sizeof(binTree));
+	readNode(in, prev->right);
+}
+
+binTree* readTree(FILE* in) {
+	binTree* tree = (binTree*)malloc(sizeof(binTree));
+	readNode(in, tree);
+	return tree;
+}
+
+void printDepressedText(FILE* in, FILE* out, binTree* tree, uint32_t numOfSymbols){
+	uint8_t counter = 0;
+	uint8_t buf = getc(in);
+	for (int i = 0; i < numOfSymbols; ++i) {
+		binTree* tmp = tree;
+		while (tmp->left != NULL && tmp->right != NULL) {
+			if (counter == 8) {
+				buf = getc(in);
+				counter = 0;
+			}
+			if ((buf & 128) == 0) {
+				tmp = tmp->left;
+			}
+			else {
+				tmp = tmp->right;
+			}
+			buf <<= 1;
+			counter++;
+		}
+		fprintf(out, "%c", tmp->val.symbol);
+	}
+}
+
+void depressText(FILE* in, FILE* out) {
+	fscanf(in, "%c");
+	binTree* tree = readTree(in);
+
+	uint32_t numOfSymbols;
+	fscanf(in, "%d", &numOfSymbols);
+	fscanf(in, "%c");
+	
+	printDepressedText(in, out, tree, numOfSymbols);
+	
+}
+
+int main() {
+	FILE* in = fopen("in.txt", "rb");
+	FILE* out = fopen("out.txt", "wb");
+	
+	uint8_t whatToDo;
+	fscanf(in, "%c", &whatToDo);
+	if (whatToDo == 'c')
+		compressText(in, out);
+	else
+		depressText(in, out);
+	fclose(in);
 	fclose(out);
-	system("pause");
+	//system("pause");
 	return 0;
 }
