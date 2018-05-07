@@ -31,11 +31,11 @@ int scan(int* numV, int* numE, int* Start, int* Finish, FILE* oFile, FILE* iFile
 
 unsigned int scanLength(FILE* iFile, FILE* oFile)
 {
-	unsigned l = 0;
+	unsigned int l = 0;
 	char c = fgetc(iFile);
 
 	while ((c != '-') && (c != '\n') && (c != EOF))
-	{	
+	{
 		l = l * 10 + c - 48;
 		c = fgetc(iFile);
 	}
@@ -48,6 +48,7 @@ void clearEdges(unsigned int** edges, int numV, FILE* oFile)
 	{
 		free(edges[i]);
 	}
+	free(edges);
 }
 
 unsigned int** fillEdges(int numV, int numE, FILE* iFile, FILE* oFile, int* error)
@@ -59,13 +60,13 @@ unsigned int** fillEdges(int numV, int numE, FILE* iFile, FILE* oFile, int* erro
 		edges[i] = (unsigned int*)malloc(sizeof(unsigned int)*(numV));
 		memset(edges[i], 0, sizeof(unsigned int)*(numV));
 	}
-	
+
 	for (int i = 0; i < numE; i++)
 	{
 		int V1, V2;
 		unsigned int length = 0;
-		
-	
+
+
 		if (feof(iFile))
 		{
 			*error = 1;
@@ -76,16 +77,16 @@ unsigned int** fillEdges(int numV, int numE, FILE* iFile, FILE* oFile, int* erro
 			*error = 1;
 			return NULL;
 		}
-		
-		
+
+
 		if (numV < V1 || V1 <= 0 || numV < V2 || V2 <= 0)
 		{
 			*error = 2;
 			return NULL;
 		}
-		
+
 		length = scanLength(iFile, oFile);
-	
+
 
 
 		if (length <= 0 || length > INT_MAX)
@@ -95,9 +96,9 @@ unsigned int** fillEdges(int numV, int numE, FILE* iFile, FILE* oFile, int* erro
 		}
 
 		edges[V1 - 1][V2 - 1] = length;
-		edges[V2 - 1][V1 - 1] = length;		
+		edges[V2 - 1][V1 - 1] = length;
 	}
-	
+
 	return edges;
 }
 
@@ -114,9 +115,9 @@ void printErr(int error, FILE* oFile)
 }
 
 void ClearAll(unsigned int ** edges, long int* MinDistance,
-	int* Path, int* AlreadyIn, int* DisOverflow,int numV, FILE* oFile)
+	int* Path, int* AlreadyIn, int* DisOverflow, int numV, FILE* oFile)
 {
-	clearEdges(edges, numV, oFile);			
+	clearEdges(edges, numV, oFile);
 	free(Path);
 	free(MinDistance);
 	free(AlreadyIn);
@@ -137,7 +138,7 @@ void MinDistanceUpdate(unsigned int ** edges, long int* MinDistance,
 
 	for (int i = 0; i < numV; i++)
 	{
-		
+
 		if (!AlreadyIn[i])
 		{
 			if (edges[newV][i])
@@ -158,7 +159,7 @@ void MinDistanceUpdate(unsigned int ** edges, long int* MinDistance,
 
 		if ((edges[newV][i]) && (AlreadyIn[i]))
 		{
-			AlreadyIn[newV]++;		
+			AlreadyIn[newV]++;
 		}
 	}
 }
@@ -177,7 +178,8 @@ int overflowCheck(unsigned int ** edges, int* Path, int Finish, int* AlreadyIn, 
 	return 0;
 }
 
-int AddVertex(unsigned int ** edges, long int* MinDistance, int * AlreadyIn, int* Path, int* DisOverflow, int numV, FILE* oFile)
+int AddVertex(unsigned int ** edges, long int* MinDistance, int * AlreadyIn, int* Path,
+	int* DisOverflow, int numV, FILE* oFile)
 {
 	long long tmp = LONG_MAX;
 	int NewVer = 0;
@@ -212,7 +214,8 @@ int AddVertex(unsigned int ** edges, long int* MinDistance, int * AlreadyIn, int
 	return 1;
 }
 
-void printRes(unsigned int ** edges, int* AlreadyIn, int* MinDistance, int* Path, int* DisOverflow, int numV, int Start, int Finish, FILE* oFile)
+void printRes(unsigned int ** edges, int* AlreadyIn, int* MinDistance, int* Path,
+	int* DisOverflow, int numV, int Start, int Finish, FILE* oFile)
 {
 	for (int i = 0; i < numV; i++)
 	{
@@ -288,7 +291,7 @@ int dijkstra(int numV, int numE, int Start, int Finish, FILE* oFile, FILE* iFile
 
 	AlreadyIn[Start] = 1;
 	MinDistance[Start] = 0;
-	
+
 	Path[Start] = Start;
 	MinDistanceUpdate(edges, MinDistance, Start, Path, AlreadyIn, numV, oFile, DisOverflow);
 
@@ -300,7 +303,7 @@ int dijkstra(int numV, int numE, int Start, int Finish, FILE* oFile, FILE* iFile
 
 	MinDistance[Start] = 0;
 	DisOverflow[Start] = 0;
-	
+
 	printRes(edges, AlreadyIn, MinDistance, Path, DisOverflow, numV, Start, Finish, oFile);
 
 	ClearAll(edges, MinDistance, Path, AlreadyIn, DisOverflow, numV, oFile);
