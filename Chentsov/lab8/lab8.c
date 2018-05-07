@@ -2,7 +2,8 @@
 #include <limits.h>
 #include <stdlib.h>
 struct edge{
-    int beginning, ending, length;
+    short beginning, ending;
+    int length;
     struct edge *next;
 };
 int main_element(int q, int *r){
@@ -128,6 +129,11 @@ int main(){
                             ++ m[s];
                     }
                     g = g->next;
+                }
+                while(h){
+                    g = h;
+                    h = h->next;
+                    free(g);
                 }
                 if(i + 1 == N){
                     for(i = 0;i < N - 1;++ i)
