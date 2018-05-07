@@ -86,6 +86,14 @@ stack* stackConstructor(memPool* pool, codeTriple val, stack* prev) {
 	return p;
 }
 
+void treeDistruct(binTree* tree) {
+	if(tree->left != NULL)
+		treeDistruct(tree->left);
+	if (tree->right != NULL)
+		treeDistruct(tree->right);
+	free(tree);
+}
+
 freqPair* sortMass(freqPair* mass, uint32_t len) {
 	for (int i = 0; i < len; ++i) {
 		if (mass[i].symbol == 0) continue;
@@ -262,24 +270,25 @@ void printBytesUsingBuffer(FILE* out, uint8_t* buf, uint8_t* counter, uint8_t nu
 }
 
 void printCompressedText(FILE* in, FILE* out, stack* codeTable, uint32_t numOfSymbols, uint8_t maxShift) {
+	fseek(in, 3, SEEK_SET);
 	uint8_t buf = 0;
 	uint8_t counter = 0;
 	//--------------------------------
 	/*stack* st1 = codeTable;
 	while (st1 != NULL) {
-		if (st1->val.symbol == 0) {
-			printBytesUsingBuffer(out, &buf, &counter, maxShift - st1->val.shift - 1, st1->val.code);
-			break;
-		}
-		st1 = st1->prev;
+	if (st1->val.symbol == 0) {
+	printBytesUsingBuffer(out, &buf, &counter, maxShift - st1->val.shift - 1, st1->val.code);
+	break;
+	}
+	st1 = st1->prev;
 	}
 	st1 = codeTable;
 	while (st1 != NULL) {
-		if (st1->val.symbol == 1) {
-			printBytesUsingBuffer(out, &buf, &counter, maxShift - st1->val.shift - 1, st1->val.code);
-			break;
-		}
-		st1 = st1->prev;
+	if (st1->val.symbol == 1) {
+	printBytesUsingBuffer(out, &buf, &counter, maxShift - st1->val.shift - 1, st1->val.code);
+	break;
+	}
+	st1 = st1->prev;
 	}
 	buf = 0;
 	counter = 0;
@@ -314,6 +323,7 @@ void compressText(FILE* in, FILE* out) {
 	}
 	//fprintf(stderr, "%d\n", __LINE__), fflush(0);
 	binTree* tree = buildTree(freqTable, numOfDifferentSymbols);
+	free(freqTable);
 	//fprintf(stderr, "%d\n", __LINE__), fflush(0);
 	/*FILE* debug = fopen("debugTreeIn.txt", "wb");
 	printTreeDebug(debug, tree);*/
@@ -335,13 +345,14 @@ void compressText(FILE* in, FILE* out) {
 	int maxShift = 32;
 	stack* codeTable = NULL;
 	codeTable = buildCodeTable(&pool, tree, NULL, 0, maxShift);
+	treeDistruct(tree);
 	//fprintf(stderr, "%d\n", __LINE__), fflush(0);
 
 	/*FILE* debug = fopen("debug.txt", "wb");
 	stack* st = codeTable;
 	while (st != NULL) {
-		fprintf(debug, "%c : %d << %d\n", st->val.symbol ,st->val.code, st->val.shift);
-		st = st->prev;
+	fprintf(debug, "%c : %d << %d\n", st->val.symbol ,st->val.code, st->val.shift);
+	st = st->prev;
 	}
 	system("pause");*/
 	/*stack* tmp = codeTable;
@@ -350,7 +361,7 @@ void compressText(FILE* in, FILE* out) {
 	tmp = tmp->prev;
 	}*/
 
-	fseek(in, 3, SEEK_SET);
+	
 	printCompressedText(in, out, codeTable, numOfSymbols, maxShift);
 	//fprintf(stderr, "%d\n", __LINE__), fflush(0);
 
@@ -449,8 +460,8 @@ void printDepressedText(FILE* in, FILE* out, binTree* tree, int32_t numOfSymbols
 void depressText(FILE* in, FILE* out) {
 	binTree* tree = readTree(in);
 
-	FILE* debug = fopen("debugTreeOut.txt", "wb");
-	printTreeDebug(debug, tree);
+	/*FILE* debug = fopen("debugTreeOut.txt", "wb");
+	printTreeDebug(debug, tree);*/
 
 	/*memPool pool = memPoolConstructor(sizeof(stack), 255);
 
@@ -461,8 +472,8 @@ void depressText(FILE* in, FILE* out) {
 	FILE* debug = fopen("debugCodeTable.txt", "wb");
 	stack* st = codeTable;
 	while (st != NULL) {
-		fprintf(debug, "%c : %d << %d\n", st->val.symbol, st->val.code, st->val.shift);
-		st = st->prev;
+	fprintf(debug, "%c : %d << %d\n", st->val.symbol, st->val.code, st->val.shift);
+	st = st->prev;
 	}*/
 
 	int32_t numOfSymbols;
@@ -484,15 +495,15 @@ int main() {
 		depressText(in, out);
 
 
-	fseek(in, 0, 0);
-	FILE* sas = fopen("sas.txt", "ab");
-	fprintf(sas, "\n----------------------------------------------\n"); fflush(0);
-	while (1)
-	{
-		uint8_t tmp = getc(in);
-		if (feof(in)) break;
-		fprintf(sas, "%c", tmp); fflush(0);
-	}
+	//fseek(in, 0, 0);
+	//FILE* sas = fopen("sas.txt", "ab");
+	//fprintf(sas, "\n----------------------------------------------\n"); fflush(0);
+	//while (1)
+	//{
+	//	uint8_t tmp = getc(in);
+	//	if (feof(in)) break;
+	//	fprintf(sas, "%c", tmp); fflush(0);
+	//}
 
 	fclose(in);
 	fclose(out);
