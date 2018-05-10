@@ -5,8 +5,6 @@
 #include <memory.h>
 #define MAX_NUM_OF_SYM 256
 
-int cou = 0;
-
 typedef struct freqPair {
 	uint8_t symbol;
 	uint32_t number;
@@ -50,11 +48,6 @@ typedef struct stack {
 	codeTriple val;
 }stack;
 
-typedef struct stackContainer {
-	stack* firstInStack;
-	stack* lastInStack;
-}stackContainer;
-
 typedef struct memPool {
 	uint8_t *mem;
 	uint32_t totalSize;
@@ -88,14 +81,6 @@ stack* stackConstructor(memPool* codeTablePool, codeTriple val, stack* prev) {
 	return p;
 }
 
-void treeDistruct(binTree* tree) {
-	if (tree->left != NULL)
-		treeDistruct(tree->left);
-	if (tree->right != NULL)
-		treeDistruct(tree->right);
-	free(tree);
-}
-
 freqPair* sortMass(freqPair* mass, uint32_t len) {
 	for (int i = 0; i < len; ++i) {
 		if (mass[i].symbol == 0) continue;
@@ -125,7 +110,7 @@ freqPair* buildfreqTable(FILE* in, uint32_t* numOfDifferentSymbols, uint32_t* nu
 	freqPair* freqTable = (freqPair*)malloc(sizeof(freqPair) * MAX_NUM_OF_SYM);
 	memset(freqTable, 0, sizeof(freqPair) * MAX_NUM_OF_SYM);
 	(*numOfSymbols) = 0;
-	while (true)
+	while (1)
 	{
 		uint8_t tmp = getc(in);
 		if (feof(in)) {
@@ -143,20 +128,6 @@ freqPair* buildfreqTable(FILE* in, uint32_t* numOfDifferentSymbols, uint32_t* nu
 		(*numOfSymbols)++;
 		freqTable[tmp].symbol = tmp;
 		freqTable[tmp].number++;
-	}
-}
-
-void printTreeDebug(FILE* debug, binTree* tree) {
-	if (tree != NULL) {
-		if (tree->left == NULL && tree->right == NULL) {
-			fprintf(debug, "%c ", tree->val.symbol);
-		}
-		else {
-			fprintf(debug, "left ");
-			printTreeDebug(debug, tree->left);
-			fprintf(debug, "right ");
-			printTreeDebug(debug, tree->right);
-		}
 	}
 }
 
@@ -220,7 +191,7 @@ binTree* nodeInit(memPool* binTreePool, uint8_t symbol, uint32_t number, binTree
 
 binTree* buildTree(memPool* binTreePool, freqPair* freqTable, uint32_t len) {
 	binTree** forest = (binTree**)malloc(sizeof(binTree*)*len);
-	
+
 	for (uint32_t i = 0; i < len; ++i) {
 		forest[i] = nodeInit(binTreePool, freqTable[i].symbol, freqTable[i].number, NULL, NULL);
 	}
@@ -234,18 +205,18 @@ binTree* buildTree(memPool* binTreePool, freqPair* freqTable, uint32_t len) {
 }
 
 stack* buildCodeTable(memPool* codeTablePool, binTree* tree, stack* prev, uint32_t code, uint8_t shift) {
-		if (tree->left == NULL && tree->right == NULL) {
-			prev = stackConstructor(codeTablePool, makeCodeTriple(tree->val.symbol, code, shift), prev);
-			return prev;
-		}
-		else {
-			shift--;
-			code <<= 1;
-			prev = buildCodeTable(codeTablePool, tree->left, prev, code, shift);
-			code |= 1;
-			prev = buildCodeTable(codeTablePool, tree->right, prev, code, shift);
-		}
+	if (tree->left == NULL && tree->right == NULL) {
+		prev = stackConstructor(codeTablePool, makeCodeTriple(tree->val.symbol, code, shift), prev);
 		return prev;
+	}
+	else {
+		shift--;
+		code <<= 1;
+		prev = buildCodeTable(codeTablePool, tree->left, prev, code, shift);
+		code |= 1;
+		prev = buildCodeTable(codeTablePool, tree->right, prev, code, shift);
+	}
+	return prev;
 }
 
 void printBytesUsingBuffer(FILE* out, uint8_t* buf, uint8_t* counter, uint8_t numOfBit, uint32_t code) {
@@ -255,7 +226,7 @@ void printBytesUsingBuffer(FILE* out, uint8_t* buf, uint8_t* counter, uint8_t nu
 	}
 	for (uint8_t i = 0; i <= numOfBit; ++i) {
 		*buf <<= 1;
-		uint16_t pos = (1 << (numOfBit));
+		uint32_t pos = (1 << (numOfBit));
 		*buf = *buf | (((code)& pos) >> (numOfBit));
 		code <<= 1;
 		*counter += 1;
@@ -265,8 +236,6 @@ void printBytesUsingBuffer(FILE* out, uint8_t* buf, uint8_t* counter, uint8_t nu
 			*counter = 0;
 		}
 	}
-	/*cou++;
-	printf("%d\n", cou);*/
 }
 
 void printCompressedText(FILE* in, FILE* out, stack* codeTable, uint32_t numOfSymbols, uint8_t maxShift) {
@@ -290,13 +259,10 @@ void printCompressedText(FILE* in, FILE* out, stack* codeTable, uint32_t numOfSy
 }
 
 void fastPrintCompressedText(FILE* out, stack* codeTable, uint32_t numOfSymbols, int maxShift) {
-	//printf("%d\n", numOfSymbols / 32);
-	for (int i = 0; i < numOfSymbols/32; ++i) {
+	for (int i = 0; i < numOfSymbols / 32; ++i) {
 		fprintf(out, "%c%c%c%c", 0, 0, 0, 0);
 	}
-	//printf("%d\n", numOfSymbols % 32);
-	for (int i = 0; i < numOfSymbols % 32; ++i){
-		//printf("a");
+	for (int i = 0; i < numOfSymbols % 32; ++i) {
 		fprintf(out, "%c", 0);
 	}
 }
@@ -314,12 +280,12 @@ int checkСompressibility(uint32_t numOfDifferentSymbols, freqPair* freqTable) {
 }
 
 void compressText(FILE* in, FILE* out) {
-	uint32_t numOfDifferentSymbols = 0, 
+	uint32_t numOfDifferentSymbols = 0,
 		numOfSymbols = 0;
-	freqPair* freqTable = 
+	freqPair* freqTable =
 		buildfreqTable(in,
-		&numOfDifferentSymbols,
-		&numOfSymbols);
+			&numOfDifferentSymbols,
+			&numOfSymbols);
 
 	if (freqTable == NULL) {
 		fprintf(out, "p%c%c\n0\n", 208, 0);
@@ -338,10 +304,11 @@ void compressText(FILE* in, FILE* out) {
 	else
 		fprintf(out, "p");
 
-	memPool binTreePool = 
+	memPool binTreePool =
 		memPoolConstructor(sizeof(binTree),
-			numOfDifferentSymbols*2);
-	binTree* tree = 
+			numOfDifferentSymbols * 2);
+
+	binTree* tree =
 		buildTree(&binTreePool,
 			freqTable,
 			numOfDifferentSymbols);
@@ -353,7 +320,7 @@ void compressText(FILE* in, FILE* out) {
 	fprintf(out, "%c", buf);
 	fprintf(out, "\n%d\n", numOfSymbols);
 
-	memPool codeTablePool = 
+	memPool codeTablePool =
 		memPoolConstructor(sizeof(stack),
 			numOfDifferentSymbols);
 	int maxShift = 32;
@@ -365,7 +332,7 @@ void compressText(FILE* in, FILE* out) {
 
 	free(binTreePool.mem);
 
-	if (numOfDifferentSymbols > 1) 
+	if (numOfDifferentSymbols > 1)
 		printCompressedText(in,
 			out,
 			codeTable,
@@ -433,12 +400,10 @@ void printDepressedText(FILE* in, FILE* out, binTree* tree, int32_t numOfSymbols
 				counter = 0;
 			}
 			if ((buf & 128) == 0) {
-				if (tmp->left != NULL)
-					tmp = tmp->left;
+				tmp = tmp->left;
 			}
 			else {
-				if (tmp->right != NULL)
-					tmp = tmp->right;
+				tmp = tmp->right;
 			}
 			buf <<= 1;
 			counter++;
@@ -447,21 +412,42 @@ void printDepressedText(FILE* in, FILE* out, binTree* tree, int32_t numOfSymbols
 	}
 }
 
+void incompressibleTextOut(FILE* in, FILE* out) {
+	while (1) {
+		uint8_t tmp = getc(in);
+		if (feof(in))
+			return;
+		fprintf(out, "%c", tmp);
+	}
+}
+
+int isOneNodeTree(binTree* tree) {
+	if (tree->left == NULL && tree->right == NULL) return 1;
+	return 0;
+}
+
+void oneNodeTreeOut(FILE* out, uint32_t numOfSymbols, uint8_t symbol) {
+	for (uint32_t i = 0; i < numOfSymbols / 4; ++i)
+		fprintf(out, "%c%c%c%c", symbol, symbol, symbol, symbol);
+	for (uint32_t i = 0; i < numOfSymbols % 4; ++i)
+		fprintf(out, "%c", symbol);
+}
+
 void depressText(FILE* in, FILE* out) {
 	uint8_t compPoss = getc(in);
 	if (compPoss == 'i') {
-		while (1) {
-			uint8_t tmp = getc(in);
-			if (feof(in))
-				return;
-			fprintf(out, "%c", tmp);
-		}
+		incompressibleTextOut(in, out);
+		return;
 	}
-
 	binTree* tree = readTree(in);
 
 	int32_t numOfSymbols;
 	fscanf(in, "%d", &numOfSymbols);
+
+	if (isOneNodeTree(tree)) {
+		oneNodeTreeOut(out, numOfSymbols, tree->val.symbol);
+		return;
+	}
 
 	getc(in);
 	printDepressedText(in, out, tree, numOfSymbols);
@@ -473,12 +459,13 @@ int main() {
 	uint8_t whatToDo;
 	fscanf(in, "%c", &whatToDo);
 	getc(in), getc(in);
+
 	if (whatToDo == 'c')
 		compressText(in, out);
 	else
 		depressText(in, out);
 
-	fclose(in),	fclose(out);
+	fclose(in), fclose(out);
 
 	return 0;
 }
