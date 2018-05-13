@@ -1,1 +1,3 @@
-# Все новые лабы посмотрел 21.12.2017 -- 14:14 НСК
+# ЧИТАТЬ ВСЕМ
+# БЕЗ РЕГИСТРАЦИИ И СМС
+# [СОВЕРШЕННЫЙ КОД СТИВ МАККОНЕЛ](http://readingbook.ru/computer-technology/351-sovershennyy-kod-master-klass.html)
