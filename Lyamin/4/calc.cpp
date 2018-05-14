@@ -139,6 +139,8 @@ int valid_expression(FILE* input) {
 		}
 		prev = buff;
 	}
+	
+	if (counter == 0) { return 0; }
 
 	if (!valid_last_symbol(prev, &brackets)) { return 0; }
 	if (brackets != 0) { return 0; }
@@ -246,9 +248,12 @@ void calc(FILE* input, FILE* output) {
 		return;
 	}
 	else{
-		fprintf(output, "%d", values->value);
-		return;
+		if (values) {
+			fprintf(output, "%d", values->value);
+			return;
+		}
 	}
+	return;
 }
 
 int main() {
