@@ -107,7 +107,7 @@ int calc_symb(numstack* val, char symb) {
 	switch (symb) {
 	case '+':
 		push(val, a + b);
-		break;,
+		break;
 	case '-':
 		push(val, b - a);
 		break;
