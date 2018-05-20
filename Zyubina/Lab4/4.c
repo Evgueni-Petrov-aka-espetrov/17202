@@ -10,18 +10,18 @@ typedef struct SS {
 } symstack;
 
 typedef struct NS {
-    int stack[MAX];
+	int stack[MAX];
 	int top;
 } numstack;
 
-char top(const symstack*c) {
+char top_c(const symstack*c) {
 	if ((c->top) > 0){
 		return c->stack[c->top - 1];
 	}
 	return -1;
 }
 
-int top(const numstack*c) {
+int top_int(const numstack*c) {
 	if ((c->top) > 0){
 		return c->stack[c->top - 1];
 	}
@@ -98,7 +98,7 @@ int calc_symb(numstack* val, char symb) {
 		printf("syntax error");
 		return 0;
 	}
-	if (symb == '/'&&top(val) == 0) {
+	if (symb == '/'&&top_int(val) == 0) {
 		printf("division by zero");
 		return 0;
 	}
@@ -107,7 +107,7 @@ int calc_symb(numstack* val, char symb) {
 	switch (symb) {
 	case '+':
 		push(val, a + b);
-		break;,
+		break;
 	case '-':
 		push(val, b - a);
 		break;
@@ -146,7 +146,7 @@ int calculator(FILE *in, int *res) {
 			if (count == 1 && (char)a == '(') {
 				return 0;
 			}
-			if (count == 2 && (char)a == ')' && top(&sym) == '(') {
+			if (count == 2 && (char)a == ')' && top_c(&sym) == '(') {
 				return 0;
 			}
 			count = 0;
@@ -155,12 +155,12 @@ int calculator(FILE *in, int *res) {
 				push(&sym, a);
 			}
 			else if ((char)a == ')') {
-				while (sym.top > 0 && top(&sym) != '(') {
+				while (sym.top > 0 && top_c(&sym) != '(') {
 					if (calc_symb(&num, pop(&sym)) == 0) {
 						return 0;
 					}
 				}
-				if (sym.top > 0 && top(&sym) == '(') {
+				if (sym.top > 0 && top_c(&sym) == '(') {
 					pop(&sym);
 				}
 				else {
@@ -168,7 +168,7 @@ int calculator(FILE *in, int *res) {
 				}
 			}
 			else {
-				while (sym.top > 0 && priority(top(&sym)) >= priority(a)){
+				while (sym.top > 0 && priority(top_c(&sym)) >= priority(a)){
 					if (calc_symb(&num, pop(&sym)) == 0) {
 						return 0;
 					}
@@ -178,7 +178,7 @@ int calculator(FILE *in, int *res) {
 		}
 		else {
 			return 0;
-            }
+		}
 	}
 	while (sym.top > 0) {
 		if (calc_symb(&num, pop(&sym)) == 0) {
