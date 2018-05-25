@@ -88,7 +88,6 @@ int main(){
                 f[(c < d) ? ((2 * N - c) * (c - 1) / 2 + d - c - 1) : ((2 * N - d) * (d - 1) / 2 + c - d - 1)] = e;
             }
             if(i == M){
-                //printf("%i\n%i\n%u %u %u\n",N,M,f[0],f[1],f[2]);
                 int *g = malloc(sizeof(int) * N), *h = malloc(sizeof(int) * N);
                 unsigned *l = malloc(sizeof(unsigned) * N);
                 g[0] = 0;
