@@ -20,7 +20,7 @@ struct graph *graph_ctor(unsigned char simbol, int multiplicity, struct graph *n
     new_vertex->right = right;
     return new_vertex;
 }
-unsigned char *output_buffer_update(unsigned char *k, const unsigned char *buffer, FILE *out, char s){
+unsigned char *output_buffer_update(unsigned char *k, const unsigned char *buffer, FILE *out){
     if(k < buffer)
         return k + 1;
     k -= BITS_IN_BYTE - 1;
@@ -34,18 +34,18 @@ unsigned char *output_buffer_update(unsigned char *k, const unsigned char *buffe
 void tree_coding(const struct graph *root, unsigned char **k, unsigned char *buffer, FILE *out){
     if(root->left){
         **k = 1;
-        *k = output_buffer_update(*k,buffer,out,'d');
+        *k = output_buffer_update(*k,buffer,out);
         tree_coding(root->left,k,buffer,out);
         tree_coding(root->right,k,buffer,out);
         return;
     }
     **k = 0;
-    *k = output_buffer_update(*k,buffer,out,'e');
+    *k = output_buffer_update(*k,buffer,out);
     int i;
     unsigned char data = root->simbol;
     for(i = BITS_IN_BYTE - 1;i >= 0;-- i){
         **k = data / powf(2,i);
-        *k = output_buffer_update(*k,buffer,out,'f');
+        *k = output_buffer_update(*k,buffer,out);
         data %= (int)powf(2,i);
     }
 }
@@ -66,7 +66,7 @@ void simbol_coding(const struct graph *code, unsigned char **k, unsigned char *b
         simbol_coding(code->next,k,buffer,out);
     }
     **k = code->simbol;
-    *k = output_buffer_update(*k,buffer,out,'g');
+    *k = output_buffer_update(*k,buffer,out);
 }
 struct tree{
     unsigned char simbol;
@@ -154,12 +154,12 @@ int main(){
                 fwrite(&simbol,sizeof(unsigned char),1,out);
                 while(length){
                     *k = length % 2;
-                    k = output_buffer_update(k,buffer + BITS_IN_BYTE - 1,out,'h');
+                    k = output_buffer_update(k,buffer + BITS_IN_BYTE - 1,out);
                     length /= 2;
                 }
                 while(k > buffer){
                     *k = 0;
-                    k = output_buffer_update(k,buffer + BITS_IN_BYTE - 1,out,'i');
+                    k = output_buffer_update(k,buffer + BITS_IN_BYTE - 1,out);
                 }
             }
             else{
