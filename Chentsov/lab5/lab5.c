@@ -20,7 +20,7 @@ struct graph *graph_ctor(unsigned char simbol, int multiplicity, struct graph *n
     new_vertex->right = right;
     return new_vertex;
 }
-unsigned char *output_buffer_update(unsigned char *k, const unsigned char *buffer, FILE *out){
+unsigned char *output_buffer_update(unsigned char *k, const unsigned char *buffer, FILE *out, char s){
     if(k < buffer)
         return k + 1;
     k -= BITS_IN_BYTE - 1;
@@ -34,18 +34,18 @@ unsigned char *output_buffer_update(unsigned char *k, const unsigned char *buffe
 void tree_coding(const struct graph *root, unsigned char **k, unsigned char *buffer, FILE *out){
     if(root->left){
         **k = 1;
-        *k = output_buffer_update(*k,buffer,out);
+        *k = output_buffer_update(*k,buffer,out,'d');
         tree_coding(root->left,k,buffer,out);
         tree_coding(root->right,k,buffer,out);
         return;
     }
     **k = 0;
-    *k = output_buffer_update(*k,buffer,out);
+    *k = output_buffer_update(*k,buffer,out,'e');
     int i;
     unsigned char data = root->simbol;
     for(i = BITS_IN_BYTE - 1;i >= 0;-- i){
         **k = data / powf(2,i);
-        *k = output_buffer_update(*k,buffer,out);
+        *k = output_buffer_update(*k,buffer,out,'f');
         data %= (int)powf(2,i);
     }
 }
@@ -66,7 +66,7 @@ void simbol_coding(const struct graph *code, unsigned char **k, unsigned char *b
         simbol_coding(code->next,k,buffer,out);
     }
     **k = code->simbol;
-    *k = output_buffer_update(*k,buffer,out);
+    *k = output_buffer_update(*k,buffer,out,'g');
 }
 struct tree{
     unsigned char simbol;
@@ -154,21 +154,13 @@ int main(){
                 fwrite(&simbol,sizeof(unsigned char),1,out);
                 while(length){
                     *k = length % 2;
-                    k = output_buffer_update(k,buffer + BITS_IN_BYTE - 1,out);
+                    k = output_buffer_update(k,buffer + BITS_IN_BYTE - 1,out,'h');
                     length /= 2;
                 }
-                if(k - buffer > BITS_IN_BYTE - FINAL_BITS_NUMBER + 1){
-                    k = buffer;
-                    simbol = 0;
-                    for(i = 0;i < BITS_IN_BYTE;++ i)
-                        simbol += buffer[i] * powf(2,BITS_IN_BYTE - 1 - i);
-                    fwrite(&simbol,sizeof(unsigned char),1,out);
+                while(k > buffer){
+                    *k = 0;
+                    k = output_buffer_update(k,buffer + BITS_IN_BYTE - 1,out,'i');
                 }
-                simbol = 0;
-                for(i = 0;i < BITS_IN_BYTE - FINAL_BITS_NUMBER;++ i)
-                    simbol += buffer[i] * powf(2,BITS_IN_BYTE - 1 - i);
-                simbol += (buffer - k + 2 * BITS_IN_BYTE - FINAL_BITS_NUMBER) % BITS_IN_BYTE;
-                fwrite(&simbol,sizeof(unsigned char),1,out);
             }
             else{
                 while(root->next){
@@ -189,8 +181,7 @@ int main(){
                     simbol_coding(codes[simbol],&k,buffer + BITS_IN_BYTE - 1,out);
                     fscanf(in,"%c",&simbol);
                 }
-                if(k - buffer > BITS_IN_BYTE - FINAL_BITS_NUMBER + 1){
-                    k = buffer;
+                if(k - buffer > BITS_IN_BYTE - FINAL_BITS_NUMBER){
                     simbol = 0;
                     for(i = 0;i < BITS_IN_BYTE;++ i)
                         simbol += buffer[i] * powf(2,BITS_IN_BYTE - 1 - i);
@@ -220,29 +211,27 @@ int main(){
             unsigned char *k = buffer + BITS_IN_BYTE + 2;
             if(buffer[0] < MAX_USED_SIMBOLS_AMOUNT / 2){
                 simbol = 2 * (buffer[0] % (MAX_USED_SIMBOLS_AMOUNT / 2)) + buffer[1] / (MAX_USED_SIMBOLS_AMOUNT / 2);
-                FILE *check = fopen("stderr.txt","w");
-                fclose(check);
                 input_buffer_update(&k,buffer,in);
                 k = buffer + BITS_IN_BYTE + 2;
                 input_buffer_update(&k,buffer,in);
                 k = buffer + 3;
                 int i = 0, length = 0;
-                while(1){
-                    if(input_buffer_update(&k,buffer,in))
-                        eof = (feof(in) != 0);
+                while(!(feof(in))){
+                    input_buffer_update(&k,buffer,in);
                     length += *k * powf(2,i);
-
                     ++ k;
                     ++ i;
-                    if((eof) && (((buffer + BITS_IN_BYTE - FINAL_BITS_NUMBER + 2 + 2 * BITS_IN_BYTE - buffer[0] % BITS_IN_BYTE - k) % BITS_IN_BYTE == 0) && (buffer[0] % BITS_IN_BYTE + (BITS_IN_BYTE - FINAL_BITS_NUMBER + 1) * eof > BITS_IN_BYTE - FINAL_BITS_NUMBER)))
-                        break;
+                }
+                while(k < buffer + 10){
+                    input_buffer_update(&k,buffer,in);
+                    length += *k * powf(2,i);
+                    ++ k;
+                    ++ i;
                 }
                 for(i = 0;i < length;++ i)
                     fprintf(out,"%c",simbol);
             }
             else{
-                FILE *check = fopen("stderr.txt","w");
-                fclose(check);
                 struct tree *j, *root = tree_decoding(in,&k,buffer);
                 while(1){
                     j = root;
