@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <io.h>
 #include <fcntl.h>
 #include <string.h>
 #include <windows.h>
 
 const int table_size = 256;
- 
+
 typedef struct node
 {
 	int rang;
@@ -21,7 +22,7 @@ typedef struct scode {
 	unsigned char len;
 } scode;
 
-node* create_node(int rang, unsigned char ch){
+node* create_node(int rang, unsigned char ch) {
 	node* N = (node*)malloc(sizeof(node));
 	N->rang = rang;
 	N->ch = ch;
@@ -32,12 +33,12 @@ node* create_node(int rang, unsigned char ch){
 }
 
 node* insert2list(node* head, node* newn) {
-	if (head == NULL || head->rang >=newn->rang) {
+	if (head == NULL || head->rang >= newn->rang) {
 		newn->next = head;
 		return newn;
 	}
 	node* N = head;
-	while (N->next!=NULL && N->next->rang < newn->rang) {
+	while (N->next != NULL && N->next->rang < newn->rang) {
 		N = N->next;
 	}
 	newn->next = N->next;
@@ -59,7 +60,7 @@ node* create_list(int *table) {
 node* create_node(node *N1, node *N2) {
 	node* N = (node*)malloc(sizeof(node));
 	N->rang = N1->rang + N2->rang;
-	N->ch = NULL;
+	N->ch = 254;
 	N->left = N1;
 	N->right = N2;
 	N->next = NULL;
@@ -79,11 +80,11 @@ node* create_tree(node* head) {
 void create_codes(scode* codes, const node* node, unsigned short code, unsigned char len) {
 	if (node->left == NULL) {
 		codes[node->ch].code = code;
-		codes[node->ch].len = len;
+		codes[node->ch].len = len == 0 ? len + 1 : len;
 	}
 	else {
 		create_codes(codes, node->left, (code << 1) + 1, len + 1);
-		create_codes(codes, node->right, code << 1 , len + 1);
+		create_codes(codes, node->right, code << 1, len + 1);
 	}
 }
 void zero_codes(scode* codes) {
@@ -92,9 +93,9 @@ void zero_codes(scode* codes) {
 	}
 }
 
-void printco(scode* codes, int* table) {
+void printco(const scode* codes, const int* table) {
 	for (int i = 0; i < table_size; i++) {
-		if (codes[i].len!=0)
+		if (codes[i].len != 0)
 			printf("%d %d %d %d\n", i, codes[i].code, codes[i].len, table[i]);
 	}
 }
@@ -111,14 +112,13 @@ void count_ch(FILE* in, FILE* tmp, int table[]) {
 	}
 }
 
-void printarr(int table[]) {
+void printarr(const int table[]) {
 	for (int i = 0; i < 256; i++) {
 		printf("%d ", table[i]);
 	}
 }
 
-void wrtree(FILE* out, node* node) {
-	//fwrite(&(node->rang), sizeof(int), 1, out);
+void wrtree(FILE* out, const node* node) {
 	fwrite(&(node->ch), sizeof(unsigned char), 1, out);
 	unsigned char has_sp;
 	if (node->left == NULL) {
@@ -137,7 +137,6 @@ node* retree(FILE* in) {
 	int nrang;
 	unsigned char nch;
 	unsigned char has_sp;
-	//fread(&nrang, sizeof(int), 1, in);
 	fread(&nch, sizeof(unsigned char), 1, in);
 	fread(&has_sp, sizeof(unsigned char), 1, in);
 	node* n;
@@ -149,101 +148,130 @@ node* retree(FILE* in) {
 	return n;
 }
 
-void encode (FILE* tmp, const scode codes[], FILE* out) {
-	unsigned short ebuf = 0;
+void encode(FILE* tmp, const scode codes[], FILE* out) {
+	unsigned int ebuf = 0;
 	unsigned char byte;
-	unsigned char freeb = 16;
-	while (fread(&byte, sizeof(unsigned char), 1, tmp) > 0){
+	unsigned char freeb = 32;
+	while (fread(&byte, sizeof(unsigned char), 1, tmp) > 0) {
 		if (codes[byte].len <= freeb) {
 			ebuf |= (codes[byte].code << (freeb - codes[byte].len));
 			freeb -= codes[byte].len;
 		}
 		else {
 			ebuf |= (codes[byte].code >> (codes[byte].len - freeb));
-			fwrite (&ebuf, sizeof(unsigned short), 1, out);
-			freeb = 16 + freeb - codes[byte].len;
+			fwrite(&ebuf, sizeof(unsigned int), 1, out);
+			freeb = 32 + freeb - codes[byte].len;
 			ebuf = codes[byte].code << freeb;
 		}
 	}
-	if (freeb < 16) {
-		//if (ebuf == 0xffff) ebuf = 0;
-		fwrite(&ebuf, sizeof(unsigned short), 1, out);
+	if (freeb < 32) {
+		fwrite(&ebuf, sizeof(unsigned int), 1, out);
 	}
 }
 
-void decode(FILE* in, FILE* out, node* root) {
-	unsigned short byte = 0;
-	node* node = NULL;
-	unsigned char prev = 0;
-	while (fread(&byte, sizeof(unsigned short), 1, in) > 0) {
-		for (int i = 15; i >= 0; i--) {
-			if (node == NULL) {
-				if (((byte >> i) & 1) == 1) {
-					node = root;
-				}
-				else
-					break;
+void decode(FILE* in, FILE* out, const node* root, int count) {
+	unsigned int coded = 0;
+	const node* node = root;
+	while (fread(&coded, sizeof(unsigned int), 1, in) > 0) {
+		for (int i = 31; i >= 0; i--) {
+			if (count == 0) break;
+			if (node->left == NULL) {
+				fwrite(&(node->ch), sizeof(unsigned char), 1, out);
+				count--;
+				node = root;
 			}
 			else {
-				if (((byte >> i) & 1) == 1) {
+				if (((coded >> i) & 1) == 1) {
 					node = node->left;
 				}
 				else
 					node = node->right;
-			}
-			if (node->left == NULL) {
-				/*if (node->ch == 10 && prev != 13) {
-					unsigned char r = 13;
-					fwrite(&r, sizeof(unsigned char), 1, out);
-				}*/
-				fwrite(&(node->ch), sizeof(unsigned char), 1, out);
-				prev = node->ch;
-				node = NULL;
+				if (node->left == NULL) {
+					fwrite(&(node->ch), sizeof(unsigned char), 1, out);
+					count--;
+					node = root;
+				}
 			}
 		}
 	}
 }
 
+void zcode(FILE* in, FILE* out) {
+	unsigned char buf[1024];
+	int rcount = 0;
+	do {
+		rcount = fread(buf, sizeof(unsigned char), 1024, in);
+		fwrite(buf, sizeof(unsigned char), rcount, out);
+	} while (rcount > 0);
+}
+
+int estimated_size(const scode* scodes, const int* table) {
+	int size = 0;
+	for (int i = 0; i < 256; i++) {
+		size += table[i] * scodes[i].len;
+	}
+	return (size + 7) / 8;
+}
+
 int main() {
-	FILE* in;
-	FILE* out;
-	//CopyFile("___in.txt", "____in.txt", 0);
-	//CopyFile("__in.txt", "___in.txt", 0);
-	CopyFile("_in.txt", "__in.txt", 0);
-	CopyFile("in.txt", "_in.txt", 0);
-	//freopen(NULL, "rb", stdin);
-	in = stdin;
+	FILE* in = stdin;
+	FILE* out = stdout;
+	setvbuf(in, NULL, _IOFBF, 1024);
+	setvbuf(out, NULL, _IOFBF, 1024);
+
 	unsigned char mode[3];
-	//puts(mode);
 	_setmode(_fileno(in), O_BINARY);
-	fread(mode, sizeof(unsigned char), 3, in);
-	//out = freopen(NULL, "wb", stdout);
-	out = stdout;
 	_setmode(_fileno(out), O_BINARY);
+	fread(mode, sizeof(unsigned char), 3, in);
+
+
 
 	if (mode[0] == 'c') {
 		int table[table_size];
 		zero_buf(table);
 		FILE* tmp;
 		errno_t err = fopen_s(&tmp, "buf.tmp", "wb");
+		setvbuf(tmp, NULL, _IOFBF, 1024);
 		count_ch(in, tmp, table);
-		fclose(tmp);
+		err = fclose(tmp);
 		node* head = create_list(table);
 		node* root = create_tree(head);
 		if (root != NULL) {
 			scode codes[table_size];
 			zero_codes(codes);
-			create_codes(codes, root, 1, 1);
-			wrtree(out, root);
+			create_codes(codes, root, 0, 0);
+			//printco(codes, table);
 			err = fopen_s(&tmp, "buf.tmp", "rb");
-			encode(tmp, codes, out);
+			setvbuf(tmp, NULL, _IOFBF, 1024);
+			if (root->rang <= estimated_size(codes, table)) {
+				unsigned char zcoding = 1;
+				fwrite(&(zcoding), sizeof(unsigned char), 1, out);
+				zcode(tmp, out);
+			}
+			else {
+				unsigned char zcoding = 0;
+				fwrite(&(zcoding), sizeof(unsigned char), 1, out);
+				if (root != NULL) fwrite(&(root->rang), sizeof(int), 1, out);
+				wrtree(out, root);
+				encode(tmp, codes, out);
+			}
 			fclose(tmp);
-			fclose(out);
 		}
 	}
 	else if (mode[0] == 'd') {
-		node* newroot = retree(in);
-		decode(in, out, newroot);
+		int count;
+		unsigned char zencoding;
+		fread(&zencoding, sizeof(unsigned char), 1, in);
+		if (zencoding == 1) {
+			zcode(in, out);
+		}
+		else {
+			fread(&count, sizeof(int), 1, in);
+			node* newroot = retree(in);
+			decode(in, out, newroot, count);
+		}
 	}
+	fclose(in);
+	fclose(out);
 	return 0;
 }
