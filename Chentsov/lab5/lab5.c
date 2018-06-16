@@ -109,23 +109,22 @@ struct tree *tree_decoding(FILE *in, unsigned char **k, unsigned char *buffer){
 }
 int main(){
     FILE *in, *out;
-    in = fopen(IN,"r");
+    in = fopen(IN,"rb");
     unsigned char simbol;
-    fscanf(in,"%c",&simbol);
+    fread(&simbol,sizeof(unsigned char),1,in);
     if(simbol == 'c'){
+        fread(&simbol,sizeof(unsigned char),1,in);
+        fread(&simbol,sizeof(unsigned char),1,in);
+        fread(&simbol,sizeof(unsigned char),1,in);
         int i, bar_chart[MAX_USED_SIMBOLS_AMOUNT];
         for(i = 0;i < MAX_USED_SIMBOLS_AMOUNT;++ i)
             bar_chart[i] = 0;
         int length = 0;
-        fscanf(in,"%c%c",&simbol,&simbol);
-        FILE *help = fopen("in1.txt","w");
         while(!(feof(in))){
             ++ bar_chart[simbol];
-            fprintf(help,"%c",simbol);
-            fscanf(in,"%c",&simbol);
             ++ length;
+            fread(&simbol,sizeof(unsigned char),1,in);
         }
-        fclose(help);
         fclose(in);
         if(length > 0){
             struct graph *j, *root;
@@ -175,11 +174,14 @@ int main(){
                 for(i = 0;i < MAX_USED_SIMBOLS_AMOUNT;++ i)
                     codes[i] = NULL;
                 tree_update(root,codes);
-                in = fopen(IN,"r");
-                fscanf(in,"%c%c%c",&simbol,&simbol,&simbol);
+                in = fopen(IN,"rb");
+                fread(&simbol,sizeof(unsigned char),1,in);
+                fread(&simbol,sizeof(unsigned char),1,in);
+                fread(&simbol,sizeof(unsigned char),1,in);
+                fread(&simbol,sizeof(unsigned char),1,in);
                 while(!(feof(in))){
                     simbol_coding(codes[simbol],&k,buffer + BITS_IN_BYTE - 1,out);
-                    fscanf(in,"%c",&simbol);
+                    fread(&simbol,sizeof(unsigned char),1,in);
                 }
                 if(k - buffer > BITS_IN_BYTE - FINAL_BITS_NUMBER){
                     simbol = 0;
@@ -204,8 +206,7 @@ int main(){
         fread(buffer,sizeof(unsigned char),1,in);
         fread(buffer,sizeof(unsigned char),1,in);
         fread(buffer,sizeof(unsigned char),1,in);
-        out = fopen("out.txt","w");
-        int eof;
+        out = fopen("out.txt","wb");
         if(!(feof(in))){
             fread(buffer + 1,sizeof(unsigned char),1,in);
             unsigned char *k = buffer + BITS_IN_BYTE + 2;
@@ -213,11 +214,15 @@ int main(){
                 simbol = 2 * (buffer[0] % (MAX_USED_SIMBOLS_AMOUNT / 2)) + buffer[1] / (MAX_USED_SIMBOLS_AMOUNT / 2);
                 input_buffer_update(&k,buffer,in);
                 k = buffer + BITS_IN_BYTE + 2;
+                int eof = (feof(in) != 0);
                 input_buffer_update(&k,buffer,in);
                 k = buffer + 3;
                 int i = 0, length = 0;
-                while(!(feof(in))){
-                    input_buffer_update(&k,buffer,in);
+                if(feof(in))
+                    ++ eof;
+                while(eof < 2){
+                    if((input_buffer_update(&k,buffer,in)) && (feof(in)))
+                        ++ eof;
                     length += *k * powf(2,i);
                     ++ k;
                     ++ i;
@@ -229,20 +234,21 @@ int main(){
                     ++ i;
                 }
                 for(i = 0;i < length;++ i)
-                    fprintf(out,"%c",simbol);
+                    fwrite(&simbol,sizeof(unsigned char),1,out);
             }
             else{
                 struct tree *j, *root = tree_decoding(in,&k,buffer);
+                int eof = (feof(in) != 0);
                 while(1){
                     j = root;
                     while(j->left){
-                        if(input_buffer_update(&k,buffer,in))
-                            eof = (feof(in) != 0);
+                        if((input_buffer_update(&k,buffer,in)) && (feof(in)))
+                            ++ eof;
                         j = *k ? j->right : j->left;
                         ++ k;
                     }
-                    fprintf(out,"%c",j->simbol);
-                    if((eof) && (((buffer + BITS_IN_BYTE - FINAL_BITS_NUMBER + 2 + 2 * BITS_IN_BYTE - buffer[0] % BITS_IN_BYTE - k) % BITS_IN_BYTE == 0) && (buffer[0] % BITS_IN_BYTE + (BITS_IN_BYTE - FINAL_BITS_NUMBER + 1) * eof > BITS_IN_BYTE - FINAL_BITS_NUMBER)))
+                    fwrite(&(j->simbol),sizeof(unsigned char),1,out);
+                    if((eof) && ((k - buffer + buffer[0] % BITS_IN_BYTE == 2 * BITS_IN_BYTE - FINAL_BITS_NUMBER + 2) || ((eof > 1) && (k - buffer + buffer[0] % BITS_IN_BYTE == BITS_IN_BYTE - FINAL_BITS_NUMBER + 2))))
                         break;
                 }
             }
